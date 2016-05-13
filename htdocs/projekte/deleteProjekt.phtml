@@ -1,0 +1,96 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+?>
+	
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		function closeWindow() {
+			if( opener )
+				opener.location.reload();
+			window.close();
+		}
+	</script>
+	
+	<?php
+	$bDebug="false";
+	
+	if( $txtDelProjektId!="" ) {
+		//set db connection:
+		if( !$bIsDbConnected )
+			if( $bIsLocal )
+				include("stasi_db_settings.inc");
+			else
+				include(  "stasi_db_settings.inc" );
+		//loeschen aller eintraege aus arbeit
+		//zunaechst auswahl aller schritte
+		$sqlSelectSchritt = "select schritt_id from schritt where projekt_id=$txtDelProjektId";
+		$rsSchritt = mysql_query( $sqlSelectSchritt )
+			or die( printError( $sqlSelectSchritt ) );
+		while( $rowSchritt = mysql_fetch_array( $rsSchritt ) ) {
+			$nSchrittId=$rowSchritt["schritt_id"];
+			$sqlDeleteArbeit = "delete from arbeit where arbeit.schritt_id=$nSchrittId";
+			mysql_query( $sqlDeleteArbeit )
+				or die( printError( $sqlDeleteArbeit ) );
+			if( $bDebug=="true" )
+				echo $sqlDeleteArbeit . "<br>";
+		}
+		
+		//loschen aller schritte
+		$sqlDeleteSchritt="delete from schritt where projekt_id=$txtDelProjektId";
+		mysql_query( $sqlDeleteSchritt )
+			or die( printError( $sqlDeleteSchritt ) );
+		if( $bDebug=="true" )
+			echo $sqlDeleteSchrit . "<br>";
+		
+		//loeschen der eintraege aus ma_projekt
+		$sqlDeleteMaProjekt = "delete from ma_projekt where projekt_id=$txtDelProjektId";
+		mysql_query( $sqlDeleteMaProjekt )
+			or die( printError( $sqlDeleteMaProjekt ) );
+		if( $bDebug=="true" )
+			echo $sqlDeleteTypeProjekt . "<br>";
+		
+		//loeschen des projekts
+		$sqlDeleteProjekt = "delete from projekt where projekt_id=$txtDelProjektId";
+		mysql_query( $sqlDeleteProjekt )
+			or die( printError( $sqlDeleteProjekt ) );
+		if( $bDebug=="true" )
+			echo $sqlDeleteProjekt . "<br>";
+		
+		echo "<script type=\"text/javascript\" language=\"JavaScript\">";
+		echo "	closeWindow();";
+		echo "</script>";
+	}
+?>
+</head>
+<body>
+<table width="100%" height="100%">
+<tr>
+<td align="center" valign="middle">
+<form name="fmDeleteProjekt" action="<?php echo "$PHP_SELF" ?>" method="post">
+	<input type="hidden" name="txtDelProjektId" type="hidden" value="<?php echo $txtProjektId ?>">
+	<table border="0" CELLPADDING="3" CELLSPACING="1" bgcolor="#666666">
+		<tr>
+			<th align="left" colspan="2">Soll das Projekt <?php echo $txtBezeichnung ?> gel&ouml;scht werden? Achtung es werden alle zugeh&ouml;rigen Arbeitsschritte und Stunden gel&ouml;scht.</td>
+		</tr>
+		<tr>
+			<td><input type="submit" value="Ok"></td>
+			<td align='right'><input type="button" value="Cancel" onClick="window.close();"></td>
+		</tr>
+	</table>
+</form>
+</td>
+</tr>
+</table>
+</body>
+</html>

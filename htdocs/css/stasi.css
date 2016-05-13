@@ -1,0 +1,190 @@
+.heute {
+    font-weight: bold;
+    color: #cc3300;
+}
+.normal{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #ffffff;
+    background-color:#333300
+}
+.form {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000
+}
+.tjoss{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    background-color: #CCCCCC
+}
+.tjossweiss{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    background-color: #FFFFFF
+}
+.tjossweissduenn{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    color: #000000;
+    background-color: #FFFFFF
+}
+.rot{
+    font-family: Geneva,Verdana,Arial,Helvetica;;
+    font-size: 10px;
+    font-weight: bold;
+    color: #990000;
+    background-color: #ffffff;
+    text-decoration: none
+}
+body{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    background-color:#ffffff
+}
+body.menu{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    background-color:#333300
+}
+td{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    background-color:#cecece
+}
+td.wichtig {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    background-color:#99cc33
+}
+td.dunkel {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    background-color:#999999
+}
+td.hintergrund{
+    background-color:#000000
+}
+th {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    background-color:#999999
+}
+th.menu{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color:#333300
+}
+th.print {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    background-color:#cccccc
+}
+input{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000
+}
+input.beschreibung{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    width: 353px;
+}
+select{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+}
+select.projekt{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    width: 135px;
+}
+select.dauer{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+    width: 50px;
+}
+select.beginn{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000;
+}
+textarea{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: normal;
+    color: #000000
+}
+a {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    color: #000000;
+    font-weight: normal;
+    text-decoration: none
+}
+a:visited{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    color: #000000;
+    text-decoration: none
+}
+a.weiss {
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    color: #ffffff;
+    font-weight: normal;
+    text-decoration: none
+}
+a.weiss:visited{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    color: #ffffff;
+    font-weight: normal;
+    text-decoration: none
+}
+a.th{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    text-decoration: none
+}
+a.th:visited{
+    font-family: Geneva,Verdana,Arial,Helvetica;
+    font-size: 10px;
+    font-weight: bold;
+    color: #000000;
+    text-decoration: none
+}

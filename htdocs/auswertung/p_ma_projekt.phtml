@@ -1,0 +1,60 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	$bIsPm=false;
+	$bIsSu=false;
+	$bIsPro=false;
+	for( $i=0; $i<count($aGruppe); $i++ ) {
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;	
+		if( $aGruppe[$i]==1 )
+			$bIsPro=true;
+	}
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	
+</head>
+<body>
+<table width="600">
+<tr>
+	<th align="left" class="print"></th>
+</tr>
+<tr><td class="hintergrund"> 
+<?php
+	include( "auswertung/print/p_ma_projekt.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues();
+	
+	if( $urlMaId!="" ) {
+		$ma_projekt_print = new p_ma_projekt( $urlMaId, $sBegin, $sEnd );
+		$ma_projekt_print->ma_projekt->sDate=$sDate;
+		/*
+		if( !$bIsSu  )
+			$ma_projekt_print->ma_projekt->nMaId=$nMaId;
+		if( $bIsPm )
+			$ma_projekt_print->ma_projekt->nPmId=$nMaId;
+		*/
+		if( !$bIsSu && !$bIsPm  )
+			$ma_projekt_print->ma_projekt->nMaId=$nMaId;
+		echo $ma_projekt_print->getTable();
+	}
+	else
+		echo "Keine Ma Id vorhanden. Auswertung nicht moeglich.";
+?>
+</td></tr></table>
+</body>
+</html>

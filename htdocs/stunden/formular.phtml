@@ -1,0 +1,317 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include(  "auth.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatsicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+
+	<script type="text/javascript" language="JavaScript">
+		var nCmbWidth;
+		function setCmbWidth(){
+			OS = getOS();
+			if (OS == 'pc'){
+		  		nCmbWidth=33;
+			} else {
+		  		nCmbWidth=12;
+			}
+			}
+		function getOS(){
+			//alert(navigator.platform);
+			if (navigator.platform.indexOf("Mac")!=-1){
+		  		return('mac');
+			} else {
+		  		return('pc');
+			}
+		}
+		setCmbWidth();
+		
+		aProjekt=new Array();
+		aProjektId=new Array();
+		aSchritt=new Array();
+		aSchrittId=new Array();
+		var nNumberOfProjekts=0;
+		var nNumberOfSchritte=0;
+		<?php
+			$bDebug="true";
+			
+			$nCmbSize=25;
+			//set db connection:
+			if( !$bIsDbConnected )
+				include( "stasi_db_settings.inc");
+			
+			include( "arbeit.inc" );
+			
+			$arbeit = new arbeit;
+			
+			$sHeader = "Sag die Wahrheit !";
+	
+			$arbeit->insert();
+			if( $txtIsSubmit=="true" )
+				echo 'if( parent )
+						if( parent.kalender ) parent.kalender.document.location.href="kalender.phtml?urlDate=' . $cmbDatum . '"';
+		
+			$arbeit->nDbMaId=$nMaId;
+	
+			//$arbeit->setTable();
+			
+			$aDate=Array();
+			$aDateValue=Array();
+			//anzahl der datumseintraege in der datum-selktbox
+			$nNumberOfDates=21;
+			for($i=0;$i<$nNumberOfDates;$i++ ) {
+				$sDateValue=date( "Y-m-d", time()-86400*$i );
+				$sDate=date( "d.m.y", time()-86400*$i );
+				$sTag=date( "l", time()-86400*$i );
+				switch( $sTag ) {
+					case "Monday": $sTag="Mo";break;
+					case "Tuesday": $sTag="Di";break;
+					case "Wednesday": $sTag="Mi";break;
+					case "Thursday": $sTag="Do";break;
+					case "Friday": $sTag="Fr";break;
+					case "Saturday": $sTag="Sa";break;
+					case "Sunday": $sTag="So";
+				}
+				if( $sTag!="Sa" && $sTag!="So" ) {
+					$aDateValue[]=$sDateValue;
+					$aDate[]=$sDate . ", " . $sTag; 
+				}
+				else 
+					if( $sTag!="Sa" ){
+						$aDateValue[]="";
+						$aDate[]="------";
+					}	
+			}
+			
+			//waehlt nur eigene projekte
+			$sqlProjekt = "select distinct projekt.projekt_id,bezeichnung from projekt,ma_projekt where ma_projekt.projekt_id=projekt.projekt_id and ma_projekt.ma_id=$nMaId or projekt.pm_id=$nMaId order by bezeichnung";
+			//waehlt alle projekte
+			//$sqlProjekt = "select projekt.projekt_id,bezeichnung from projekt where status=0 order by bezeichnung";
+			$rsProjekt = mysql_query( $sqlProjekt )
+				or die( dbError( $sqlProjekt ) );
+		    $nNumberOfProjekts=mysql_num_rows( $rsProjekt );
+			
+		?>
+
+		for( i=0;i<<?php echo $nNumberOfProjekts ?>;i++ ) {
+			aSchritt[i]=new Array();
+			aSchrittId[i]=new Array();
+		}
+
+		<?php
+			$counterProjekt = 0;
+			$counterSchritt = 0;
+			while( $rowProjekt = mysql_fetch_array( $rsProjekt ) ) {
+				$nProjektId=$rowProjekt["projekt_id"];
+				$sProjekt=$rowProjekt["bezeichnung"];
+	
+				echo 'aProjekt[' . $counterProjekt . '] = "' . $sProjekt . '";
+					  aProjektId[' . $counterProjekt . '] = ' . $nProjektId . ';';
+		
+				$sqlSchritt = "select bezeichnung,schritt_id from schritt where projekt_id=$nProjektId order by bezeichnung";
+				$rsSchritt = mysql_query( $sqlSchritt )
+					or die( dbError( $sqlSchritt ) );
+				$currCounterSchritt = 0;
+				while( $rowSchritt = mysql_fetch_array($rsSchritt) ) {
+		
+					if( $currCounterSchritt==0 ) {
+						echo 'aSchritt[' . $nProjektId . ']=new Array();
+							  aSchrittId[' . $nProjektId . ']=new Array();';
+					}
+		
+					$sSchritt=$rowSchritt["bezeichnung"];
+					$nSchrittId=$rowSchritt["schritt_id"];
+		
+					echo 'aSchritt[' . $nProjektId . '][' . $currCounterSchritt . '] = "' . $sSchritt . '";
+						  aSchrittId[' . $nProjektId . '][' . $currCounterSchritt . '] = ' . $nSchrittId . ';';
+		
+					$currCounterSchritt++;
+				} //end while rowSchritt
+				if( $currCounterSchritt>$counterSchritt )
+					$counterSchritt = $currCounterSchritt;
+				$counterProjekt++;
+			} //end while rowProjekt
+			if( $counterSchritt=="" )
+				$counterSchritt=0;	
+			
+		$nNumberOfProjekts=$counterProjekt;
+		$nNumberOfSchritte=$counterSchritt;
+		?>
+		//__________________________________________________________________________________
+		function onLoad() {
+			var cmbProjekt;
+			for( k=0; k<5; k++ ) {
+				cmbProjekt = getFormElement( this, "fmArbeit", "cmbProjekt" + k  );
+				if( cmbProjekt!=null ) {
+					if( cmbProjekt.options[0]==null ) {
+						opProjekt = new Option( "Projekt" ); 
+						cmbProjekt.options[cmbProjekt.length]=opProjekt;
+					}
+					else
+						cmbProjekt.options[0].text="Projekt";
+					cmbProjekt.options[0].value="";
+					for( i=0;i<aProjekt.length;i++ ) {
+						if( cmbProjekt.options[i+1]==null ) {
+							opProjekt = new Option( aProjekt[i] ); 
+							cmbProjekt.options[cmbProjekt.length]=opProjekt;
+						}
+						else
+							cmbProjekt.options[i+1].text=aProjekt[i];
+						cmbProjekt.options[i+1].value=aProjektId[i];
+						if( i==0 )
+							cmbProjekt.options[i].selected=true;	
+					}
+					if( aSchritt[0]!=null )
+						cmbProjektClicked( "cmbProjekt" + k, "cmbSchritt" + k  );
+				}
+			}
+		}
+
+		function cmbProjektClicked( sCmbProjekt, sCmbSchritt ) {
+			var nSelectedProjektId=getSelectedCmbValue( this, "fmArbeit", sCmbProjekt );
+			var cmbSchritt=getFormElement( this, "fmArbeit", sCmbSchritt );
+			if( cmbSchritt.selectedIndex != -1 )
+				var sSelectedSchritt=getSelectedCmbText( this, "fmArbeit", sCmbSchritt );
+			if( nSelectedProjektId!="" ) {
+				//alte eintraege werden geloescht
+				while( cmbSchritt.options[0]!=null ) 
+					cmbSchritt.options[0]=null;
+				if( aSchritt[nSelectedProjektId]!=null )
+					for( i=0; i<aSchritt[nSelectedProjektId].length; i++ ) {
+						//pruefung ob ein eintrag vorhanden ist
+						if( cmbSchritt.options[i]==null ) {
+							opSchritt = new Option( aSchritt[nSelectedProjektId][i] );
+							cmbSchritt.options[i] = opSchritt;
+						}
+						else 
+							cmbSchritt.options[i].text=aSchritt[nSelectedProjektId][i];
+						cmbSchritt.options[i].value=aSchrittId[nSelectedProjektId][i];
+						if( i==0 )
+							cmbSchritt.options[i].selected=true;	
+						if( sSelectedSchritt==aSchritt[nSelectedProjektId][i] )
+							cmbSchritt.options[i].selected=true;
+					} //end for i
+			} //end if
+			else {
+				if( cmbSchritt.options[0]==null ) {
+					opSchritt = new Option( "Bitte erst" );
+					cmbSchritt.options[0] = opSchritt;
+				}
+				else 
+					cmbSchritt.options[0].text="Bitte erst";
+				cmbSchritt.options[0].value="";
+				if( cmbSchritt.options[1]==null ) {
+					opSchritt = new Option( "Projekt wählen." );
+					cmbSchritt.options[1] = opSchritt;
+				}
+				else 
+					cmbSchritt.options[1].text="Projekt wählen.";
+				cmbSchritt.options[1].value="";
+			}
+				
+			<?php
+			if( $urlArbeitId!="" )
+				echo 'selectSchritt( ' . $arbeit->nSchrittId . ' );';	
+			?>
+		} //end function cmbProjektClicked
+
+		function cmbDauerClicked( sCmbDauer, sTxtDauer ) {
+			getFormElement( this, "fmArbeit", sTxtDauer ).value = getSelectedCmbValue( this, "fmArbeit", sCmbDauer );
+		}
+		
+		function selectSchritt( nSchrittId ) {
+			var cmbSchritt=getFormElement( this, "fmArbeit", "cmbSchritt" );
+			for( i=0; i<cmbSchritt.options.length; i++ ) {
+				if( cmbSchritt.options[i].value==nSchrittId )
+					cmbSchritt.options[i].selected=true;	 
+			}
+		}
+		
+		function selectProjekt( nProjektId ) {
+			var cmbProjekt0=getFormElement( this, "fmArbeit", "cmbProjekt0" );
+			for( i=0; i<cmbProjekt0.options.length; i++ ) {
+				if( cmbProjekt0.options[i].value==nProjektId )
+					cmbProjekt0.options[i].selected=true;	 
+			}
+		}
+		
+		function cmbFilterProjektClicked() {
+			document.fmFilter.submit();	
+		}
+	</script>
+
+	
+
+</head>
+<body onLoad="onLoad()">
+<table width="780"><tr><td class="hintergrund"> 
+<table border="0" cellpadding="3" cellspacing="1" bgcolor="#000000" width="100%">
+<form name="fmArbeit" action="<?php echo "$PHP_SELF" ?>" method="post">
+<input name="txtMaId" type="hidden" value="<?php echo $nMaId ?>">
+<input name="txtArbeitId" type="hidden" value="<?php if( $urlArbeitId!="" ) echo $arbeit->nArbeitId ?>">
+<input name="txtIsSubmit" type="hidden" value="true">
+	<tr>
+		<th colspan="4" align="left"><?php echo "$sHeader" ?></th>
+	</tr>
+	<tr bgcolor="#666666">
+		<td colspan="4"><select name="cmbDatum" size="1">
+			<?php
+			for( $i=0; $i<count($aDate); $i++ ) {
+				echo '<option value="' . $aDateValue[$i] . '">' . $aDate[$i]; 
+			}
+			?>
+			<option value="">Textfelder -->
+		</select><input name="txtTag" type="text" size="2" maxlength="2">.<input name="txtMonat" type="text" size="2" maxlength="2">.<input name="txtJahr" type="text" size="2" maxlength="2">(tt.mm.jj)</td>	
+	</tr>
+	<tr>
+		<th align="left" width="127">Projekt</td>
+		<th align="left" width="127">Kategorie</td>
+		<th align="left" width="380">Beschreibung</td>
+		<th align="left" width="127">Dauer</td>
+	</tr>
+	<?php
+	$sOptionsProjekts = "<script type='text/javascript' language='JavaScript'>";
+	for( $i=0; $i<$nNumberOfProjekts;$i++ ) 
+			$sOptionsProjekts .= "window.document.write('<option>');for( k=0; k<nCmbWidth; k++ )document.write('&nbsp;');";
+	$sOptionsProjekts .= "</script>";
+	
+	$sOptionsSchritte = "<script type='text/javascript' language='JavaScript'>";
+	for( $i=0; $i<$nNumberOfSchritte;$i++ ) 
+			$sOptionsSchritte .= "window.document.write('<option>');for( k=0; k<nCmbWidth; k++ )document.write('&nbsp;');";
+	$sOptionsSchritte .= "</script>";
+	
+	for( $k=0; $k<5; $k++ ) {
+		echo "<tr>
+			<td><select name=\"cmbProjekt" . $k . "\" class=\"projekt\" size=\"1\" onChange=\"cmbProjektClicked( 'cmbProjekt" . $k . "', 'cmbSchritt" . $k . "' )\">" . $sOptionsProjekts . "	
+			</select></td>
+			<td><select name=\"cmbSchritt" . $k . "\" class=\"projekt\" size=\"1\">" . $sOptionsSchritte . "
+			</select></td>
+			<td><input name=\"txtBeschreibung" . $k . "\" type=\"text\" class=\"beschreibung\" size=\"44\" maxlength=\"100\"></td>
+			<td width='100%'><select name=\"cmbDauer" . $k . "\" class=\"dauer\" size=\"1\" onChange=\"cmbDauerClicked( 'cmbDauer" . $k . "', 'txtDauer" . $k . "' )\"><option>--<option value=\"1\">1/8<option value=\"2\">1/4<option value=\"4\">1/2<option value=\"6\">3/4<option value=\"8\">1<option value=\"12\">1,5</select>Tag&nbsp;<input name=\"txtDauer" . $k . "\" type=\"text\" size=\"2\" maxlength=\"2\">h</td>
+		</tr>";
+	}
+	?>
+	<tr>
+		<!--<td colspan="4"><input type="button" value="Speichern" onClick="checkAndSubmit()"></td>-->
+		<td colspan="3">&nbsp;</td>
+		<td><input type="submit" value="Speichern"></td>
+	</tr>
+</form>
+</table>
+</td></tr>
+<tr>
+	<td align="right" valign="middle" class="tjossweiss"><a href="../urlaub/index.phtml" target="middle">Urlaub/Krankheit eintragen</a></td>
+</tr>
+</table>
+</body>
+</html>
+

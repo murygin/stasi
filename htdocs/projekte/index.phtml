@@ -1,0 +1,123 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+	
+	for( $i=0; $i<count($aGruppe); $i++ )
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>Staatssicherheit</title>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		/**
+		* oeffnet ein fenster in dem ein projekt editiert wird
+		*/
+		function editProjekt( nProjektId ) {
+			if( nProjektId!=-1 )
+				var sUrl="editProjekt.phtml?urlProjektId=" + nProjektId;
+			else
+			   var sUrl="editProjekt.phtml";
+			ewProjekt = window.open( sUrl,"ewProjekt","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,width=315,height=320,resizable=yes");
+			ewProjekt.focus();
+		}
+		
+		/**
+		* oeffnet ein fenster in dem ein schritt editiert wird
+		*/
+		function editSchritt( nSchrittId, sBezeichnung, nProjektId ) {
+			while( sBezeichnung.indexOf( " " )!=-1 )
+				sBezeichnung = sBezeichnung.replace( / /, "+" );
+			if( nSchrittId!=-1 )
+				var sUrl = "editSchritt.phtml?urlSchrittId=" + nSchrittId + "&urlBezeichnung=" + sBezeichnung;
+			else
+				var sUrl = "editSchritt.phtml?urlProjektId=" + nProjektId;
+			ewSchritt = window.open( sUrl,"ewSchritt","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,width=315,height=200,resizable=yes");
+			ewSchritt.focus();
+		}
+	</script>
+	<?php
+	//auswahl der projekte
+	if( $bIsSu )
+		$sqlProjekt = "select projekt_id,bezeichnung,projekt_nr,status from projekt";
+	else	
+		//$sqlProjekt = "select projekt_id,bezeichnung,projekt_nr from projekt where pm_id=$nMaId";
+		$sqlProjekt = "select projekt.projekt_id,bezeichnung,projekt_nr from projekt,ma_projekt,ma_gruppe,ma where projekt.projekt_id=ma_projekt.projekt_id and ma.ma_id=ma_projekt.ma_id and ma.ma_id=ma_gruppe.ma_id and ma_gruppe.gruppe_id=2 and ma_projekt.ma_id=$nMaId";
+	switch( $urlOrder ) {
+		case "name":
+			$sqlProjekt .= " order by bezeichnung";
+			break;
+		case "nr":
+			$sqlProjekt .= " order by projekt_nr";
+			break;
+		case "status":
+			$sqlProjekt .= " order by status";
+			break;
+		default:
+        	$sqlProjekt .= " order by bezeichnung";
+	}
+	$rsProjekt= mysql_query( $sqlProjekt )
+		or die( dbError( $sqlProjekt ) );
+	
+	?>
+</head>
+<body>
+	<table width="800"><tr><td class="hintergrund"> 
+	<table border="0" cellpadding="3" cellspacing="1" width="100%">
+		<tr>
+			<td colspan="5"><a href="javascript:editProjekt( -1 )">-> neues Projekt</a></td>
+		</tr>
+		<th align="left"><a href="index.phtml?urlOrder=name" class="th">Projekt</a></th>
+		<th align="left"><a href="index.phtml?urlOrder=nr" class="th">Projekt-Nr</a></th>
+		<th align="left"><a href="index.phtml?urlOrder=status" class="th">Status</a></th>
+		<th align="left" colspan="2">Arbeitsschritte</th>
+	<?php
+	while( $rowProjekt=mysql_fetch_array( $rsProjekt ) ) {
+		$sProjekt=$rowProjekt["bezeichnung"];
+		$nProjektId=$rowProjekt["projekt_id"];
+		$sProjektNr=$rowProjekt["projekt_nr"];
+		if( $sProjektNr=="" )
+			$sProjektNr="&nbsp;";
+		if( $rowProjekt["status"]==0 )
+			$sStatus="laufend"; 
+		if( $rowProjekt["status"]==1 )
+			$sStatus="erledigt"; 
+		$sqlSchritt="select schritt_id,bezeichnung from schritt where projekt_id=$nProjektId";
+		$rsSchritt= mysql_query( $sqlSchritt )
+			or die( dbError( $sqlSchritt ) );
+	 	echo "<tr>
+	 				<td valign='top'><a href='javascript:editProjekt( $nProjektId )'>$sProjekt</a></td>
+					<td valign='top'><a href='javascript:editProjekt( $nProjektId )'>$sProjektNr</a></td>
+	 				<td valign='top'><a href='javascript:editProjekt( $nProjektId )'>$sStatus</a></td>
+					<td>";
+		$nCounter=0;
+	 	while( $rowSchritt=mysql_fetch_array( $rsSchritt ) ) {
+	 	 	$sSchritt = $rowSchritt["bezeichnung"];
+	 	 	$nSchrittId = $rowSchritt["schritt_id"];
+	 	 	echo "<a href='javascript:editSchritt( $nSchrittId, \"$sSchritt\", -1 )'>$sSchritt</a>&nbsp;&nbsp;";
+			$nCounter++;
+			if( $nCounter==3 ) {
+				echo "<br>";
+				$nCounter=0;
+			}
+	 	}
+	 	echo "&nbsp;</td>
+	 			<td valign='top'><a href='javascript:editSchritt( -1, \"$sSchritt\", $nProjektId )'>-> neu</a></td>
+	 		</tr>
+	 		";
+	}
+	?>
+	</table>
+	</td></tr></table>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		/**
+		* oeffnet ein fenster in dem ein mitarbeiter(ma) editiert wird
+		*/
+		function editMa( nMaId ) {
+			if( nMaId!=-1 )
+				var sUrl="editMa.phtml?urlMaId=" + nMaId;
+			else
+			   var sUrl="editMa.phtml";
+			ewMa = window.open( sUrl,"ewMa","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,width=350,height=310,resizable=yes");
+			ewMa.focus();
+		}
+	</script>
+	<?php
+	
+	//auswahl der mitarbeiter(ma)
+	$sqlMa = "select distinct ma_id,vorname,name,standort.bezeichnung as stadt,email,status from ma,standort where ma.standort_id=standort.standort_id";
+	if( $urlOrder=="" )
+		 $sqlMa .= " order by stadt,vorname";
+	else
+		 $sqlMa .= " order by " . $urlOrder;
+	$rsMa= mysql_query( $sqlMa )
+		or die( dbError( $sqlMa ) );
+		
+	?>
+</head>
+<body>
+<table width="600"><tr><td class="hintergrund"> 
+<table border="0" cellpadding="3" cellspacing="1" width="100%">
+	<tr>
+		<td colspan="6"><a href="javascript:editMa( -1 )">-> neuer Mitarbeiter</a></td>
+	</tr>
+	<tr>
+		<th align="left"><a href="index.phtml?urlOrder=vorname" class="th">Vorname</a></th>
+		<th align="left"><a href="index.phtml?urlOrder=name" class="th">Nachname</a></th>
+		<th align="left"><a href="index.phtml?urlOrder=stadt" class="th">Standort</a></th>
+		<th align="left"><a href="index.phtml?urlOrder=email" class="th">eMail</a></th>
+		<th align="left">Gruppe</th>
+		<th align="left"><a href="index.phtml?urlOrder=status" class="th">Status</a></th>
+	</tr>
+	<?php
+	while( $rowMa = mysql_fetch_array( $rsMa ) ) {
+		$nMaId = $rowMa["ma_id"];
+		$sVorname = $rowMa["vorname"];
+		$sName = $rowMa["name"];
+		if( $rowMa["status"]==0 )
+			$sStatus = "aktiv";
+		if( $rowMa["status"]==1 )
+			$sStatus = "ausgeschieden";
+		if( $sName=="" )
+			$sName="&nbsp;";
+		$sStandort = $rowMa["stadt"];
+		$sEmail = $rowMa["email"];
+		if( $sEmail=="" )
+			$sEmail="&nbsp;";
+		echo "<tr>
+					<td><a href='javascript:editMa( $nMaId )'>" . $sVorname . "</a></td>
+					<td><a href='javascript:editMa( $nMaId )'>" . $sName . "</a></td>
+					<td><a href='javascript:editMa( $nMaId )'>" . $sStandort . "</a></td>
+					<td><a href='javascript:editMa( $nMaId )'>" . $sEmail . "</a></td>
+					<td><a href='javascript:editMa( $nMaId )'>";
+		$sqlGruppe = "select gruppe.bezeichnung from ma,gruppe,ma_gruppe where gruppe.gruppe_id=ma_gruppe.gruppe_id and ma.ma_id=ma_gruppe.ma_id and ma.ma_id=$nMaId";
+		$rsGruppe= mysql_query( $sqlGruppe )
+			or die( dbError( $sqlGruppe ) );
+		while( $rowGruppe=mysql_fetch_array( $rsGruppe ) )
+			echo ''. $rowGruppe["bezeichnung"] . '&nbsp;';		
+		echo "		</a></td>
+					<td><a href='javascript:editMa( $nMaId )'>" . $sStatus . "</a></td>
+			  </tr>
+			 ";
+	}
+	?>
+</table>	
+</td></tr></table>
+</body>
+</html>

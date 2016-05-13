@@ -1,0 +1,264 @@
+<?php
+   $bIsLocal=true;
+	
+    $aAccessId=Array();
+    $aAccessId[]="2";
+    $aAccessId[]="3";
+    include( "auth.inc" );
+    $bIsPm=false;
+    $bDebug=false;
+	 $bIsSu=false;
+	 $bIsPro=false;
+	 for( $i=0; $i<count($aGruppe); $i++ ) {
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;	
+		if( $aGruppe[$i]==1 )
+			$bIsPro=true;
+	 }
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+    <title>Staatssicherheit</title>
+    <link rel="stylesheet" type="text/css" href="/css/stasi.css">
+    <script type="text/javascript" language="JavaScript" src="/js/form_lib.js"></script>
+    <script type="text/javascript" language="JavaScript" src="/js/checkData.js"></script>
+    <script type="text/javascript" language="JavaScript">
+        /**
+        * laed den inhalt des oeffnenden fensters und schliesst das fenster selbst
+        */
+        function closeWindow() {
+            if( opener )
+                opener.location.reload();
+            window.close();
+        }
+			
+        /**
+        * aendert die action-url des forms fmEditProjekt und schickt das form ab
+        */
+        function deleteProjekt() {
+            window.document.fmEditProjekt.action="deleteProjekt.phtml";
+            window.document.fmEditProjekt.submit();
+        }
+        /**
+        * ueberprueft die eingaben und schickt ggf. das formular ab
+        */
+        function checkAndSubmit() {
+				var bIsOk=true;
+				var aFields = new Array( "txtBezeichnung" );
+				if( !checkEmptyness( this, "fmEditProjekt", aFields ) ) {
+					bIsOk=false;
+			 		var sError = "Folgende Felder müssen noch ausgefüllt werden: ";
+			 		for( i=0;i<aEmptyFields.length;i++ ) {
+			 	   	if( i!=0 )
+			 	   		sError = sError + "\n"; 	
+			 			sError = sError + aEmptyFields[i];
+			 		}
+			 		alert( sError );	
+				}
+				if( bIsOk )
+			
+					getForm( this, "fmEditProjekt" ).submit();
+        }
+    </script>
+    <?php
+    
+    //auswahl aller standorte
+    $sqlStandort = "select standort_id,bezeichnung from standort";
+    $rsStandort= mysql_query( $sqlStandort )
+        or die( dbError( $sqlStandort ) );
+        
+    //auswahl aller mas
+    $sqlMa = "select concat(ma.vorname,' ',ma.name) as name,ma_id from ma order by ma.vorname";
+    $rsMa= mysql_query( $sqlMa )
+        or die( dbError( $sqlMa ) );
+    
+    //auswahl des projekts
+    if( $urlProjektId!="" ) {
+        $sqlProjekt = "select projekt_id,bezeichnung,projekt_nr,status,standort_id from projekt where projekt_id=$urlProjektId";
+        $rsProjekt= mysql_query( $sqlProjekt )
+            or die( dbError( $sqlProjekt ) );
+        if( $rowProjekt=mysql_fetch_array( $rsProjekt ) ) {
+             $sBezeichnung = $rowProjekt["bezeichnung"];
+             $nProjektId = $rowProjekt["projekt_id"];
+            $sProjektNr = $rowProjekt["projekt_nr"];
+            $nStatusId = $rowProjekt["status"];
+             $nSelectedStandortId = $rowProjekt["standort_id"];
+        }
+        $aMaId=array();
+        $sqlTeam = "select ma_id from ma_projekt where projekt_id=$urlProjektId";
+        $rsTeam= mysql_query( $sqlTeam )
+            or die( dbError( $sqlTeam ) );
+        while( $rowTeam=mysql_fetch_array( $rsTeam ) )
+            $aMaId[]=$rowTeam["ma_id"];     
+    }
+    
+    //editieren des projektes
+    if( $txtBezeichnung!="" && $cmbStandort!="" ) {
+    
+        if( $txtProjektId!="" ) {
+            $sqlUpdate = "update projekt set bezeichnung='$txtBezeichnung',standort_id=$cmbStandort,projekt_nr='$txtProjektNr',status=$rbStatus where projekt_id=$txtProjektId";
+             mysql_query( $sqlUpdate )
+                 or die( dbError( $sqlUpdate ) );    
+             
+             //loeschen alter ma_projekt eintraege
+             $sqlDeleteMa = "delete from ma_projekt where projekt_id=$txtProjektId";
+            mysql_query( $sqlDeleteMa )
+                or die( printError( $sqlDeleteMa ) );
+            //hinzufuegen der neuen ma-projekt paare zu ma_projekt
+            $nCounter=0;
+    
+    	/*
+    	foreach($mcbMa as $key => $value){
+    	print $key . "=>" . $value;
+    	}
+    	*/
+            while( $mcbMa[$nCounter]!="" ) {
+            	
+                $sqlSetMa="insert into ma_projekt (ma_id,projekt_id) values ($mcbMa[$nCounter],$txtProjektId)";
+                mysql_query( $sqlSetMa )
+                    or die( printError( $sqlSetMa ) );
+                if( $bDebug=="true" )
+                    echo "$sqlSetMa<br>";    
+                $nCounter++;
+            }
+        
+             echo "<script type='text/javascript' language='JavaScript'>
+                       closeWindow();
+                     </script>
+                     ";    
+         } //end if( $txtProjektId!="" )
+         else {
+            if( $txtProjektNr=="" )
+                    $sqlInsert = "insert into projekt (bezeichnung,standort_id,status) values ('$txtBezeichnung',$cmbStandort,0)";
+             else
+                $sqlInsert = "insert into projekt (bezeichnung,standort_id,projekt_nr,status) values ('$txtBezeichnung',$cmbStandort,'$txtProjektNr',0)";
+            mysql_query( $sqlInsert )
+                 or die( dbError( $sqlInsert ) );
+             
+            $nNewProjektId=mysql_insert_id();
+                     
+             //hinzufuegen der neuen ma-projekt paare zu ma_projekt
+            $nCounter=0;
+            while( $mcbMa[$nCounter]!="" ) {
+                $sqlSetMa="insert into ma_projekt (ma_id,projekt_id) values ($mcbMa[$nCounter],$nNewProjektId)";
+                mysql_query( $sqlSetMa )
+                    or die( printError( $sqlSetMa ) );
+                if( $bDebug=="true" )
+                    echo "$sqlSetMa<br>";
+                $nCounter++;
+            }
+            if( $cbSchritt=="yes" ) {
+                //anlegen der standart arbeitsschritte
+                //$sqlSchritte = "insert into schritt (projekt_id,bezeichnung) values ($nNewProjektId,'Beratung'),($nNewProjektId,'Konzeption'),($nNewProjektId,'Creative Direction'),($nNewProjektId,'Projektmanagement'),($nNewProjektId,'Design'),($nNewProjektId,'Produktion/HTML'),($nNewProjektId,'Text/Redaktion'),($nNewProjektId,'Logfile/Email'),($nNewProjektId,'Recherche'),($nNewProjektId,'Kundenmeeting'),($nNewProjektId,'Projektmeeting'),($nNewProjektId,'Video-/Soundediting'),($nNewProjektId,'Programierung'),($nNewProjektId,'Sonstiges')";
+                $sqlSchritte = "insert into schritt (projekt_id,bezeichnung) values ($nNewProjektId,'Konzeption'),($nNewProjektId,'Design'),($nNewProjektId,'Code'),($nNewProjektId,'Projektmanagement'),($nNewProjektId,'KundengesprŠch'),($nNewProjektId,'ArbeitsgesprŠch'),($nNewProjektId,'Management/Administration')";     
+				mysql_query( $sqlSchritte )
+                    or die( printError( $sqlSchritte ) );
+            }
+                
+            echo "<script type='text/javascript' language='JavaScript'>
+                         if( opener )
+                            opener.location.reload();
+                     </script>
+                     ";
+         }
+    }
+    ?>
+</head>
+<body>
+<?php
+$bIsNewMode=($urlProjektId=="");
+if( !$bIsNewMode ) {
+    $sActionUrl="$PHP_SELF";
+    $sHeader="Projekt $sBezeichnung";
+    $sButton="Save";
+}
+else {
+    $sActionUrl="$PHP_SELF";
+    $sHeader="Neues Projekt";
+    $sButton="Add";
+}
+?>
+
+<form name="fmEditProjekt" action="<?php echo $sActionUrl ?>" method="post">
+<input name="txtProjektId" type="hidden" value="<?php echo "$nProjektId" ?>">
+<table width="250"><tr><td class="hintergrund">
+<table border="0" cellpadding="3" cellspacing="1" width="100%">
+    <tr>
+        <th colspan="2" align="left"><?php echo "$sHeader" ?></th>
+    </tr>
+    <tr>
+        <td align="right">Projektname</td>
+        <td><input name="txtBezeichnung" type="text" size="15" maxlength="25" value="<?php echo "$sBezeichnung" ?>"></td>
+    </tr>
+    <tr>
+        <td align="right">Projekt-Nr</td>
+        <td><input name="txtProjektNr" type="text" size="15" maxlength="25" value="<?php echo "$sProjektNr" ?>"></td>
+    </tr>
+    <?php
+    if( !$bIsNewMode ) {
+        echo '<tr>
+                <td align="right">Status</td>
+                <td><input name="rbStatus" type="radio" value="0"';
+        if( $nStatusId==0 )
+            echo ' checked';
+        echo '>laufend<input name="rbStatus" type="radio" value="1"';    
+        if( $nStatusId==1 )
+            echo ' checked';    
+        echo '>erledigt
+              </tr>';
+    }
+    if( $bIsNewMode) {
+        echo '<tr>
+                <td align="right">Arbeitsschritte</td>
+                <td><input name="cbSchritt" type="checkbox" value="yes" checked>anlegen</td>
+              </tr>';
+    }
+    ?>
+    <tr>
+        <td align="right">Standort</td>
+        <td><select name="cmbStandort" size="1">
+            <?php            
+                while( $rowStandort = mysql_fetch_array( $rsStandort) ) {
+                    $sStandort=$rowStandort["bezeichnung"];
+                    $nStandortId=$rowStandort["standort_id"];
+                    if( $nSelectedStandortId==$nStandortId )
+                        echo "<option value=\"$nStandortId\" selected>$sStandort";
+                    else
+                        echo "<option value=\"$nStandortId\">$sStandort";
+                }
+            ?>
+        </select></td>
+    </tr>
+    <tr>
+        <td align="right">Pm(s) und Team, Mehrfachauswahl mit Strg/'Apfel' + Klick</td>
+        <td><select name="mcbMa[]" size="7" multiple>
+            <?php            
+                while( $rowMa = mysql_fetch_array( $rsMa) ) {
+                    $sMa=$rowMa["name"];
+                    $nMaIdMcb=$rowMa["ma_id"];
+                    for( $i=0; $i<sizeof($aMaId) && $aMaId[$i]!=$nMaIdMcb; $i++ ){}
+                    	if( ($aMaId[$i]==$nMaIdMcb) ||
+								 ($bIsNewMode && $nMaIdMcb==$nMaId && $bIsPm) )
+        						echo "<option value=\"$nMaIdMcb\" selected>$sMa";
+              			else
+                 			echo "<option value=\"$nMaIdMcb\">$sMa";
+                }
+            ?>
+        </select></td>
+    </tr>
+    <tr>
+            <td>&nbsp;</td>
+            <td><?php echo "<input type=\"button\" value=\"$sButton\" onClick=\"checkAndSubmit();\">";
+            if( $urlProjektId!="" )
+                echo "&nbsp;<input type=\"button\" value=\"Delete\" onClick=\"deleteProjekt();\">";    
+            ?></td>
+        </tr>
+</table>
+</td></tr></table>
+</form>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	
+	include( "auth.inc" );
+	for( $i=0; $i<count($aGruppe); $i++ )
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+</head>
+<body>
+<?php
+	include( "auswertung/projekt.inc" );
+	$projekt = new projekt();
+	$projekt->setMonth( "01"  );
+	$rsProjekt = $projekt->getResultSet();
+	while( $rowProjekt=mysql_fetch_array( $rsProjekt ) ) {
+		$sProjekt = $rowProjekt["projekt"];
+		$nSumme = $rowProjekt["summe"];
+		echo "$sProjekt: $nSumme<br>";
+	} 
+	echo '<br>';
+	include( "auswertung/projekt_schritt.inc" );
+	$projekt_schritt = new projekt_schritt(1);
+	$projekt_schritt->setMonth( "01"  );
+	$rsSchritt = $projekt_schritt->getResultSet();
+	while( $rowSchritt=mysql_fetch_array( $rsSchritt ) ) {
+		$sSchritt = $rowSchritt["schritt"];
+		$nSumme = $rowSchritt["summe"];
+		echo "$sSchritt: $nSumme<br>";
+	} 
+	echo '<br>';
+	include( "auswertung/projekt_ma.inc" );
+	$projekt_ma = new projekt_ma(1);
+	$projekt_ma->setMonth( "01" );
+	$rsMa = $projekt_ma->getResultSet();
+	while( $rowMa=mysql_fetch_array( $rsMa ) ) {
+		$sName = $rowMa["name"];
+		$nSumme = $rowMa["summe"];
+		echo "$sName: $nSumme<br>";
+	} 
+	echo '<br>';
+	include( "auswertung/projekt_schritt_ma.inc" );
+	$projekt_schritt_ma = new projekt_schritt_ma(18);
+	$projekt_schritt_ma->setMonth( "01" );
+	$rsMa = $projekt_schritt_ma->getResultSet();
+	while( $rowMa=mysql_fetch_array( $rsMa ) ) {
+		$sName = $rowMa["name"];
+		$nSumme = $rowMa["summe"];
+		echo "$sName: $nSumme<br>";
+	} 
+	echo '<br>';
+	include( "auswertung/projekt_ma_schritt.inc" );
+	$projekt_ma_schritt = new projekt_ma_schritt(2,2);
+	$projekt_ma_schritt->setMonth( "01" );
+	$rsSchritt = $projekt_ma_schritt->getResultSet();
+	while( $rowSchritt=mysql_fetch_array( $rsSchritt ) ) {
+		$sSchritt = $rowSchritt["schritt"];
+		$nSumme = $rowSchritt["summe"];
+		echo "$sSchritt: $nSumme<br>";
+	} 
+?>
+</body>
+</html>

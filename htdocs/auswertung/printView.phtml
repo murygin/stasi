@@ -1,0 +1,82 @@
+<?php
+	$bIsLocal=true;
+	$sCookieName=Array();
+	$sCookieName[]="1";
+	$sCookieName[]="2";
+	$sCookieName[]="3";
+	if( $bIsLocal ) {
+		include( "cookieCheck.inc" );
+		include( "datum.inc" );
+	}
+	else {
+		include( "/cookieCheck.inc" );
+		include( "/datum.inc" );
+	}
+	if( !$bIsAuth ) {
+		echo "kein Zugang zu dieser Seite!";
+		exit;
+	}
+	for( $i=0; $i<count($aGruppe); $i++ ) {
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;
+	}
+		
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<title>Staatsicherheit</title>
+	<?php
+	if( file_exists( "/css/stasi.css" ) ) {
+		echo '<link rel="stylesheet" type="text/css" href="/stasi/css/stasi.css">';
+		echo '<script type="text/javascript" language="JavaScript" src="/stasi/js/submit.js"></script>';
+	}
+	else {
+		echo '<link rel="stylesheet" type="text/css" href="/~schmidt/css/stasi.css">';
+		echo '<script type="text/javascript" language="JavaScript" src="/~schmidt/js/submit.js"></script>';
+	}
+	//set db connection:
+	if( !$bIsDbConnected )
+		include("stasi_db_settings.inc");
+	
+	include "arbeit.inc";
+			
+	$arbeit = new arbeit;
+	
+	if( $bIsPm )
+		$arbeit->nDbPmId=$nMaId;
+	else
+		if( !$bIsSu )
+			$arbeit->nDbMaId=$nMaId; 	
+
+	
+	if( $urlMaId!=-1 )
+		$arbeit->nDbMaId=$urlMaId;
+		
+	if( $urlProjektId!=-1 )
+		$arbeit->nDbProjektId=$urlProjektId;
+		
+	if( $urlSchrittId!=-1 )
+		$arbeit->nDbSchrittId=$urlSchrittId;	
+		
+	if( $urlDatum!=-1 ) {
+		$arbeit->sDbBeginn=$urlDatum;
+		$nYahr=substr( $arbeit->sDbBeginn, 0, 4 );
+		$nMonat=substr( $arbeit->sDbBeginn, 5, 2 );
+		$arbeit->sDbEnde=$nYahr . "-" . $nMonat . "-" . "31";
+	}
+	
+	$arbeit->setPrintTable();	
+	?>
+</head>
+
+<body>
+<?php
+	echo "$arbeit->sTable";
+?>
+</body>
+</html>

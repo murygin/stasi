@@ -1,0 +1,82 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+
+	$bIsPm=false;
+	$bIsSu=false;
+	$bIsPro=false;
+	for( $i=0; $i<count($aGruppe); $i++ ) {
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;	
+		if( $aGruppe[$i]==1 )
+			$bIsPro=true;
+	}
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		function showProjektMaSchritt( nProjektId, nMaId, sBegin, sEnd, sDate ) {
+			if( sBegin=="" )
+				sBegin=-1;
+			if( sEnd=="" )
+				sEnd=-1;
+			sUrl = "projekt_ma_schritt.phtml?urlProjektId=" + nProjektId + "&urlMaId=" + nMaId + "&urlBegin=" + sBegin + "&urlEnd=" + sEnd + "&urlDate=" + sDate;
+			document.location.href=sUrl;
+		}
+		function printView( nProjektId, sBegin, sEnd, sDate ) {
+			if( sBegin=="" )
+				sBegin=-1;
+			if( sEnd=="" )
+				sEnd=-1;
+			var sUrl = "p_projekt_ma.phtml?urlProjektId=" + nProjektId + "&urlBegin=" + sBegin + "&urlEnd=" + sEnd + "&urlDate=" + sDate;
+			printWindow = window.open( sUrl,"printWindow","toolbar=yes,location=no,directories=no,status=no,menubar=yes,scrollbars=auto,width=800,height=600,resizable=yes");
+			if( window.focus )
+				printWindow.focus();
+		}
+		function cmbBeginClicked() {
+			sEndText=getSelectedCmbText( this, "fmTime", "cmbBegin" );
+			selectCmbByText( this, "fmTime", "cmbEnd", sEndText);
+		}
+	</script>
+</head>
+<body>
+<table width="600"><tr><td class="hintergrund"> 
+<?php
+	include( "auswertung/view/v_projekt_ma.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues();
+	setValue( "urlProjektId",$urlProjektId ); 
+	printTimeTable();
+	
+	if( $urlProjektId!="" ) {
+		$projekt_ma_view = new v_projekt_ma( $urlProjektId, $sBegin, $sEnd );
+		$projekt_ma_view->projekt_ma->sDate=$sDate;
+		/*
+		if( !$bIsSu  )
+			$projekt_ma_view->projekt_ma->nMaId=$nMaId;
+		if( $bIsPm )
+			$projekt_ma_view->projekt_ma->nPmId=$nMaId;
+		*/
+		if( !$bIsSu && !$bIsPm  )
+			$projekt_ma_view->projekt_ma->nMaId=$nMaId;
+		echo $projekt_ma_view->getTable();
+	}
+	else
+		echo "Keine Projekt Id vorhanden. Auswertung nicht moeglich.";
+?>
+</td></tr></table>
+</body>
+</html>

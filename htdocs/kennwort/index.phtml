@@ -1,0 +1,63 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+	
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		function submitPwd() {
+			if( document.fmKennwort.txtKennwort1.value!=document.fmKennwort.txtKennwort2.value )
+				alert( "Die beiden Kennwšrter stimmen nicht Ÿberein." )
+			else
+				document.fmKennwort.submit();
+		}
+	</script>
+	<?php
+	if( $txtKennwort1!="" && $txtKennwort2!="" && $txtKennwort1==$txtKennwort2 ) {
+		$sqlPwd = "update ma set kennwort=password('$txtKennwort1') where ma_id=$nMaId";
+		mysql_query( $sqlPwd )
+			or die( dbError( $sqlPwd ) );
+		$bIsChanged=true;
+	}
+	?>
+</head>
+<body>
+<form name="fmKennwort" action="<?php echo "$PHP_SELF" ?>" method="post">
+<table width="280"><tr><td class="hintergrund"> 
+<table border="0" cellpadding="3" cellspacing="1" width="100%">
+	<tr>
+		<th colspan="2" align="left">Kennwort &auml;ndern</th>
+	</tr>
+	<tr>
+		<td colspan="2">maximal 8 Zeichen</td>
+	</tr>
+	<tr>
+		<td align="right">neues Kennwort[1]</td>
+		<td><input name="txtKennwort1" type="password" size="8" maxlength="8"></td>
+	</tr>
+	<tr>
+		<td align="right">neues Kennwort[2]</td>
+		<td><input name="txtKennwort2" type="password" size="8" maxlength="8"></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><input type="button" value="Speichern" onClick="submitPwd()"</td>
+	</tr>
+</table>
+</td></tr></table>
+</form>
+</body>
+</html>

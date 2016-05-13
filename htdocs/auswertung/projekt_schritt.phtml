@@ -1,0 +1,66 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+
+	for( $i=0; $i<count($aGruppe); $i++ )
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		function showProjektSchrittMa( nSchrittId, sBegin, sEnd, sDate ) {
+			if( sBegin=="" )
+				sBegin=-1;
+			if( sEnd=="" )
+				sEnd=-1;
+			sUrl = "projekt_schritt_ma.phtml?urlSchrittId=" + nSchrittId + "&urlBegin=" + sBegin + "&urlEnd=" + sEnd + "&urlDate=" + sDate;
+			document.location.href=sUrl;
+		}
+		function printView( nProjektId, sBegin, sEnd, sDate ) {
+			if( sBegin=="" )
+				sBegin=-1;
+			if( sEnd=="" )
+				sEnd=-1;
+			var sUrl = "p_projekt_schritt.phtml?urlProjektId=" + nProjektId + "&urlBegin=" + sBegin + "&urlEnd=" + sEnd + "&urlDate=" + sDate;
+			printWindow = window.open( sUrl,"printWindow","toolbar=yes,location=no,directories=no,status=no,menubar=yes,scrollbars=auto,width=800,height=600,resizable=yes");
+			if( window.focus )
+				printWindow.focus();
+		}
+		function cmbBeginClicked() {
+			sEndText=getSelectedCmbText( this, "fmTime", "cmbBegin" );
+			selectCmbByText( this, "fmTime", "cmbEnd", sEndText);
+		}
+	</script>
+</head>
+<body>
+<table width="600"><tr><td class="hintergrund"> 
+<?php
+	include( "auswertung/view/v_projekt_schritt.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues(); 
+	setValue( "urlProjektId",$urlProjektId ); 
+	printTimeTable();
+	
+	if( $urlProjektId!="" ) {
+		$projekt_schritt_view = new v_projekt_schritt( $urlProjektId, $sBegin,$sEnd );
+		$projekt_schritt_view->projekt_schritt->sDate=$sDate;
+		echo $projekt_schritt_view->getTable();
+	}
+	else
+		echo "Keine Projekt Id vorhanden. Auswertung nicht moeglich.";
+?>
+</td></tr></table>
+</body>
+</html>

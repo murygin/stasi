@@ -1,0 +1,59 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	//include( "cookieCheck.inc" );
+	include( "auth.inc" );
+
+	for( $i=0; $i<count($aGruppe); $i++ )
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		function showProjektSchrittMa( nSchrittId ) {
+			sUrl = "projekt_schritt_ma.phtml?urlSchrittId=" + nSchrittId;
+			if( getSelectedCmbValue( this, "fmTime", "cmbBegin" )!=null )
+				sUrl += "&urlBegin=" + getSelectedCmbValue( this, "fmTime", "cmbBegin" );
+			if( getSelectedCmbValue( this, "fmTime", "cmbEnd" )!=null ) 
+				sUrl += "&urlEnd=" + getSelectedCmbValue( this, "fmTime", "cmbEnd" );
+			document.location.href=sUrl;
+		}
+		function cmbBeginClicked() {
+			sEnd=getSelectedCmbValue( this, "fmTime", "cmbBegin" ).substring( 0, 4 ) + "-" + getSelectedCmbValue( this, "fmTime", "cmbBegin" ).substring( 5, 7 ) + "-31";
+			selectCmbByValue( this, "fmTime", "cmbEnd", sEnd);
+		}
+	</script>
+</head>
+<body>
+<table width="600">
+<tr>
+	<th align="left" class="print"></th>
+</tr>
+<tr><td class="hintergrund"> 
+<?php
+	include( "auswertung/print/p_projekt_schritt.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues(); 
+	
+	if( $urlProjektId!="" ) {
+		$projekt_schritt_print = new p_projekt_schritt( $urlProjektId, $sBegin,$sEnd );
+		$projekt_schritt_print->projekt_schritt->sDate=$sDate;
+		echo $projekt_schritt_print->getTable();
+	}
+	else
+		echo "Keine Projekt Id vorhanden. Auswertung nicht moeglich.";
+?>
+</td></tr></table>
+</body>
+</html>

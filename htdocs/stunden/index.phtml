@@ -1,0 +1,21 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+<html>
+<head>
+	<title>Staatssicherheit</title>
+</head>
+<frameset rows="290,*">
+	<frame src="formular.phtml" name="formular" noresize border=0 frameborder=0 framespacing=0 scrolling=auto>
+	<frame src="kalender.phtml" name="kalender" noresize border=0 frameborder=0 framespacing=0 scrolling=auto>
+</frameset>
+<body bgcolor="#999999"></body>
+</html>

@@ -1,0 +1,84 @@
+<?php
+/**
+* das fomular zum waehlen der zeitspanne
+*/
+$aKey=Array();
+$aValue=Array();
+function setValue( $sKey, $sValue ) {
+	global $aKey, $aValue;
+	$aKey[]=$sKey;
+	$aValue[]=$sValue;
+}
+function printTimeTable() {
+	global $aKey, $aValue, $sBegin, $sEnd, $PHP_SELF;
+	echo '
+	<table border="0" cellpadding="1" cellspacing="1" width="100%">
+	<form name="fmTime" action="' . $PHP_SELF . '" method="post">
+';
+
+	for( $i=0;$i<count($aKey);$i++ ) {
+		echo '<input type="hidden" name="' . $aKey[$i] . '" value="' . $aValue[$i] . '">';
+	}
+
+	echo '<tr>
+			<td class="form" align="right">Anfang&nbsp;<select name="cmbBegin" class="beginn" size="1" onChange="cmbBeginClicked()">';
+	$nMonth = date( "m" );
+	$nYear = date( "Y" );
+	for( $i=0; $i<12; $i++ ) {
+		echo '<option value="' . $nYear . '-' . $nMonth . '-01">' . $nMonth . '/' . $nYear;
+		$nMonth--;
+		if( $nMonth<1 ) {
+			$nMonth=12;
+			$nYear--;
+		}	
+		if( strlen($nMonth)==1 )
+			$nMonth = "0" . $nMonth;
+	}
+	echo '<option value="-1">offen';
+		
+	echo '</select>&nbsp;&nbsp;Ende&nbsp;<select name="cmbEnd" class="beginn" size="1">';
+	
+	$nMonth = date( "m" );
+	$nYear = date( "Y" );
+	for( $i=0; $i<12; $i++ ) {
+		echo '<option value="' . $nYear . '-' . $nMonth . '-31">' . $nMonth . '/' . $nYear;
+		$nMonth--;
+		if( $nMonth<1 ) {
+			$nMonth=12;
+			$nYear--;
+		}	
+		if( strlen($nMonth)==1 )
+			$nMonth = "0" . $nMonth;
+	}
+	echo '<option value="-1">offen';
+		
+	echo '</select>&nbsp;&nbsp;<input type="submit" value="Zeiraum w&auml;hlen" class="form"></td>
+			</tr>
+		</form>
+		</table>
+';
+		echo '
+	<script type="text/javascript" language="JavaScript">
+	';
+		if( $sBegin!="" ) {
+			echo 'selectCmbByValue( this, "fmTime", "cmbBegin", "' . $sBegin . '" );
+	';
+		}
+		else {
+			echo 'selectCmbByValue( this, "fmTime", "cmbBegin", "-1" );
+	';
+		}
+		if( $sEnd!="" ) {
+			echo 'selectCmbByValue( this, "fmTime", "cmbEnd", "' . $sEnd . '" );
+	';
+		}
+		else {
+			echo 'selectCmbByValue( this, "fmTime", "cmbEnd", "-1" );
+	';
+		}
+		echo '</script>
+	';
+}
+
+
+?>

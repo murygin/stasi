@@ -1,0 +1,103 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		/**
+		* laed den inhalt des oeffnenden fensters und schliesst das fenster selbst
+		*/
+		function closeWindow() {
+			if( opener )
+				opener.location.reload();
+			window.close();
+		}
+		
+		/**
+		* aendert die action-url des forms fmEditSchritt und schickt das form ab
+		*/
+		function deleteSchritt() {
+			window.document.fmEditSchritt.action="deleteSchritt.phtml";
+			window.document.fmEditSchritt.submit();
+		}
+	</script>
+	<?php
+	
+	//editieren des schrittes
+	if( $txtBezeichnung!="" ) {
+		if( $txtSchrittId!="" ) {
+			$sqlUpdate = "update schritt set bezeichnung='$txtBezeichnung' where schritt_id=$txtSchrittId";
+	 		mysql_query( $sqlUpdate )
+	 			or die( dbError( $sqlUpdate ) );	
+	 		
+	 		echo "<script type='text/javascript' language='JavaScript'>
+	 					closeWindow();
+	 				</script>
+	 				";	
+	 	} //end if( $txtSchrittId!="" )
+	 	else
+	 		if( $txtProjektId!="" )	{
+	 	   	$sqlInsert = "insert ignore into schritt (bezeichnung,projekt_id) values ('$txtBezeichnung',$txtProjektId )";
+	 			mysql_query( $sqlInsert )
+	 				or die( dbError( $sqlInsert ) );
+	 		
+				echo "<script type='text/javascript' language='JavaScript'>
+	 						if( opener )
+								opener.location.reload();
+	 					</script>
+	 					";	
+	 		}
+	}
+	?>
+</head>
+<body>
+<?php
+if( $urlSchrittId!="" ) {
+	$sActionUrl="$PHP_SELF";
+	$sHeader="Arbeitsschritt $urlBezeichnung";
+	$sButton="Save";
+}
+else {
+	$sActionUrl="$PHP_SELF";
+	$sHeader="Neuer Arbeitsschritt";
+	$sButton="Add";
+}
+if( $txtProjektId!="" )
+	if( $urlProjektId=="" )
+		$urlProjektId=$txtProjektId;
+?>
+<form name="fmEditSchritt" action="<?php echo $sActionUrl ?>" method="post">
+<input name="txtSchrittId" type="hidden" value="<?php echo "$urlSchrittId" ?>">
+<input name="txtProjektId" type="hidden" value="<?php echo "$urlProjektId" ?>">
+<table width="250"><tr><td class="hintergrund">
+<table border="0" cellpadding="3" cellspacing="1" width="100%">
+	<tr>
+		<th colspan="2" align="left"><?php echo "$sHeader" ?></th>
+	</tr>
+	<tr>
+		<td align="right">Bezeichnung</td>
+		<td><input name="txtBezeichnung" type="text" size="15" maxlength="25" value="<?php echo "$urlBezeichnung" ?>"></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><?php echo "<input type=\"submit\" value=\"$sButton\">";
+		if( $urlSchrittId!="" )
+			echo "&nbsp;<input type=\"button\" value=\"Delete\" onClick=\"deleteSchritt();\">";	
+		?></td>
+	</tr>
+</table>
+</td></tr></table>
+</form>
+</body>
+</html>

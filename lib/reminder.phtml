@@ -1,0 +1,71 @@
+<?php
+//set db connection:
+if( !$bIsDbConnected )
+	include( "stasi_db_settings.inc");
+/**
+* ueberprueft fuer das aktuelle datum ob arbeitseintraege von allen mitarbeitern vorhanden sind, 
+* wenn nicht wird eine nachricht an den ma verschickt
+*/
+
+$sEmailBody = "vergiss die Stasi nicht!\n\n";
+
+/**
+* waehlt fuer das datum $sDate(MySql format yyyy-mm-tt) alle ma_id aus arbeit aus fuer die eintraege vorhanden sind
+* die ma_ids werden als array zurueckgegeben
+*/
+function selectInsertedMa( $sDate ) {	
+	$aMaId = Array();
+	$sqlSelectMaId = "select distinct ma_id from arbeit where datum='$sDate'";
+	$rsMaId = mysql_query( $sqlSelectMaId )
+			or die( dbError( $sqlSelectMaId ) );
+	while( $rowMaId=mysql_fetch_array( $rsMaId ) ) {
+		$aMaId[]=$rowMaId["ma_id"];
+	}
+	return $aMaId;
+}
+
+/**
+* schickt eine erinnerungsemail an $sName an die adresse $sEmail
+*/
+function sendEmail( $sEmail, $sName ) {
+	global $sEmailBody;
+	$sSubject = "Zeiterfassung";
+	$sBody = "Hallo $sName,\n\n$sEmailBody";
+	$sHeader = "From:Staatssicherheit <stasi@ddr>\nReply-To:nobody@localhost";
+	mail( $sEmail, $sSubject, $sBody, $sHeader );
+	//echo "mail( $sEmail, $sSubject, $sBody, $sHeader );<br><br>";
+} 
+
+//geprueft wird der letzte tag, daher -86400s
+$nDayId=date( "w", time() - 86400 );
+if( $nDayId!=0 && $nDayId!=6 ) {
+	$sqlSelectMa = "select email,vorname,ma_id from ma where status=0";
+	$rsMa = mysql_query( $sqlSelectMa )
+		or die( dbError( $sqlSelectMa ) );
+	$sLastDay = date( "Y-m-d", time() - 86400 );
+	$aInserted = selectInsertedMa( $sLastDay );
+	while( $rowMa = mysql_fetch_array( $rsMa ) ) {
+		$sName = $rowMa["vorname"];
+		$sEmail = $rowMa["email"];
+		$nMaId = $rowMa["ma_id"];
+		$bFound=false;
+		//$nDayId==5 -> freitag, $nMaId==26 -> jan
+		if( !($nDayId==5 && $nMaId==26) ) {
+			for( $i=0; $i<count($aInserted)&&!$bFound; $i++ ) {
+				if( $nMaId==$aInserted[$i] ) {
+					$bFound=true;
+					$aInserted[$i]=$aInserted[0];
+					array_shift($aInserted);
+				}
+			}
+			if( !$bFound && $sEmail!="" )
+				sendEmail( $sEmail, $sName );
+		}
+	}
+}
+
+?>
+
+reminder sent sucessfully.
+
+<? exit(); ?>

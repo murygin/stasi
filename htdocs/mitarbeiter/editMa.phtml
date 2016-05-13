@@ -1,0 +1,243 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	include( "arbeit.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/form_lib.js"></script>
+ 	<script type="text/javascript" language="JavaScript" src="/js/checkData.js"></script>
+	<script type="text/javascript" language="JavaScript">
+		/**
+		* laed den inhalt des oeffnenden fensters und schliesst das fenster selbst
+		*/
+		function closeWindow() {
+			if( opener )
+				opener.location.reload();
+			window.close();
+		}
+		
+		/**
+		* aendert die action-url des forms fmEditMa und schickt das form ab
+		*/
+		function deleteMa() {
+			window.document.fmEditMa.action="deleteMa.phtml";
+			window.document.fmEditMa.submit();
+		}
+		
+		/**
+  		* ueberprueft die eingaben und schickt ggf. das formular ab
+      */
+      function checkAndSubmit() {
+			var bIsOk=true;
+			var aFields = new Array( "txtVorname", "txtName" );
+			if( !checkEmptyness( this, "fmEditMa", aFields ) ) {
+				bIsOk=false;
+			 	var sError = "Folgende Felder müssen noch ausgefüllt werden: ";
+			 	for( i=0;i<aEmptyFields.length;i++ ) {
+			 		if( i!=0 )
+			 	 		sError = sError + "\n"; 	
+			 		sError = sError + aEmptyFields[i];
+			 	}
+			 	alert( sError );	
+			}
+			if( bIsOk )
+				getForm( this, "fmEditMa" ).submit();
+        }
+	</script>
+	<?php
+	
+	//auswahl aller standorte
+	$sqlStandort = "select standort_id,bezeichnung from standort";
+	$rsStandort= mysql_query( $sqlStandort )
+		or die( dbError( $sqlStandort ) );
+	
+	//auswahl aller gruppen
+	$sqlGruppe = "select gruppe_id,bezeichnung from gruppe";
+	$rsGruppe= mysql_query( $sqlGruppe )
+		or die( dbError( $sqlGruppe ) );
+			
+	//auswahl des Mas
+	if( $urlMaId!="" ) {
+		$sqlMa = "select vorname,name,email,standort_id,status from ma where ma_id=$urlMaId";
+		$rsMa= mysql_query( $sqlMa )
+			or die( dbError( $sqlMa ) );
+		if( $rowMa=mysql_fetch_array( $rsMa ) ) {
+		 	$sVorname = $rowMa["vorname"];
+			$sName = $rowMa["name"];
+		 	$sEmail = $rowMa["email"];
+			$nStatusId = $rowMa["status"];
+		 	$nSelectedStandortId = $rowMa["standort_id"];
+		}
+		$aGruppeId=array();
+		$sqlMaGruppe = "select gruppe_id from ma_gruppe where ma_id=$urlMaId";
+		$rsMaGruppe= mysql_query( $sqlMaGruppe )
+			or die( dbError( $sqlMaGruppe ) );
+		while( $rowMaGruppe=mysql_fetch_array( $rsMaGruppe ) )
+			$aGruppeId[]=$rowMaGruppe["gruppe_id"]; 	
+	}
+	
+	//editieren des Maes
+	if( $txtVorname!="" && $cmbStandort!="" && $mcbGruppe[0]!="" ) {
+		if( $txtMaId!="" ) {
+			$sqlUpdate = "update ma set vorname='$txtVorname',standort_id=$cmbStandort,status=$rbStatus";
+			$sqlUpdate .= ",name='$txtName'";
+			$sqlUpdate .= ",email='$txtEmail'";
+			$sqlUpdate .= " where ma_id=$txtMaId";
+	 		mysql_query( $sqlUpdate )
+	 			or die( dbError( $sqlUpdate ) );	
+	 		
+	 		//loeschen alter ma_gruppe eintraege
+	 		$sqlDeleteMaGruppe = "delete from ma_gruppe where ma_id=$txtMaId";
+			mysql_query( $sqlDeleteMaGruppe )
+				or die( printError( $sqlDeleteMaGruppe ) );
+			//hinzufuegen der neuen ma-Ma paare zu ma_Ma
+			$nCounter=0;
+			while( $mcbGruppe[$nCounter]!="" ) {
+				$sqlSetMaGruppe="insert into ma_gruppe (ma_id,gruppe_id) values ($txtMaId,$mcbGruppe[$nCounter])";
+				mysql_query( $sqlSetMaGruppe )
+					or die( printError( $sqlSetMaGruppe ) );
+				if( $bDebug=="true" )
+					echo "$sqlSetMaGruppe<br>";	
+				$nCounter++;
+			}
+		
+	 		echo "<script type='text/javascript' language='JavaScript'>
+	 					closeWindow();
+	 				</script>
+	 				";	
+	 	} //end if( $txtMaId!="" )
+	 	else {
+	 	   	$sqlInsert = "insert into ma (status,kennwort,vorname,standort_id";
+		   	if( $txtName!="" )
+				$sqlInsert .= ",name"; 
+			if( $txtEmail!="" )
+				$sqlInsert .= ",email";
+		   	$sqlInsert .= ") values (0,password('$txtVorname'),'$txtVorname',$cmbStandort";
+		   	if( $txtName!="" )
+				$sqlInsert .= ",'$txtName'"; 
+			if( $txtEmail!="" )
+				$sqlInsert .= ",'$txtEmail'";
+		   	$sqlInsert .= ")";
+	 		mysql_query( $sqlInsert )
+	 			or die( dbError( $sqlInsert ) );
+	 		
+	 		$nNewMaId = mysql_insert_id();
+	 				
+	 		//hinzufuegen der neuen ma-gruppe paare zu ma_gruppe
+			$nCounter=0;
+			while( $mcbGruppe[$nCounter]!="" ) {
+				$sqlSetMaGruppe="insert into ma_gruppe (ma_id,gruppe_id) values ($nNewMaId,$mcbGruppe[$nCounter])";
+				mysql_query( $sqlSetMaGruppe )
+					or die( dbError( $sqlSetMaGruppe ) );
+				if( $bDebug=="true" )
+					echo "$sqlSetMaGruppe<br>";	
+				$nCounter++;
+			}
+			
+			echo "<script type='text/javascript' language='JavaScript'>
+	 					if( opener )
+							opener.location.reload();
+	 				</script>
+	 				";
+	 	}
+	}
+	?>
+</head>
+<body>
+<?php
+if( $urlMaId!="" ) {
+	$sActionUrl="$PHP_SELF";
+	$sHeader="Mitarbeiter $sVorname $sName";
+	$sButton="Save";
+}
+else {
+	$sActionUrl="$PHP_SELF";
+	$sHeader="Neuer Mitarbeiter";
+	$sButton="Add";
+}
+?>
+<form name="fmEditMa" action="<?php echo $sActionUrl ?>" method="post">
+<input name="txtMaId" type="hidden" value="<?php echo "$urlMaId" ?>">
+<table width="300"><tr><td class="hintergrund">
+<table border="0" cellpadding="3" cellspacing="1" width="100%">
+	<tr>
+		<th colspan="2" align="left"><?php echo "$sHeader" ?></th>
+	</tr>
+	<tr>
+		<td align="right">Vorname</td>
+		<td><input name="txtVorname" type="text" size="15" maxlength="25" value="<?php echo "$sVorname" ?>"></td>
+	</tr>
+	<tr>
+		<td align="right">Nachname</td>
+		<td><input name="txtName" type="text" size="15" maxlength="25" value="<?php echo "$sName" ?>"></td>
+	</tr>
+	<tr>
+		<td align="right">eMail</td>
+		<td><input name="txtEmail" type="text" size="15" maxlength="100" value="<?php echo "$sEmail" ?>"></td>
+	</tr>
+	<tr>
+		<td align="right">Standort</td>
+		<td><select name="cmbStandort" size="1">
+			<?php			
+				while( $rowStandort = mysql_fetch_array( $rsStandort) ) {
+					$sStandort=$rowStandort["bezeichnung"];
+					$nStandortId=$rowStandort["standort_id"];
+					if( $nSelectedStandortId==$nStandortId )
+						echo "<option value=\"$nStandortId\" selected>$sStandort";
+					else
+						echo "<option value=\"$nStandortId\">$sStandort";
+				}
+			?>
+		</select></td>
+	</tr>
+	<tr>
+		<td align="right">Gruppe(n), Mehrfachauswahl mit Strg/'Apfel' + Klick</td>
+		<td><select name="mcbGruppe[]" size="5" multiple>
+			<?php			
+				while( $rowGruppe = mysql_fetch_array( $rsGruppe) ) {
+					$sGruppe=$rowGruppe["bezeichnung"];
+					$nGruppeId=$rowGruppe["gruppe_id"];
+					for( $i=0; $i<sizeof($aGruppeId) && $aGruppeId[$i]!=$nGruppeId; $i++ ){}
+						if( $aGruppeId[$i]==$nGruppeId )
+							echo "<option value=\"$nGruppeId\" selected>$sGruppe";
+						else
+							echo "<option value=\"$nGruppeId\">$sGruppe";
+				}
+			?>
+		</select></td>
+	</tr>
+	<?php
+	if( $urlMaId!="" ) {
+		echo '<tr>
+				<td align="right">Status</td>
+				<td><input name="rbStatus" type="radio" value="0"';
+		if( $nStatusId==0 )
+			echo ' checked';
+		echo '>aktiv<input name="rbStatus" type="radio" value="1"';	
+		if( $nStatusId==1 )
+			echo ' checked';	
+		echo '>ausgeschieden
+			  </tr>';
+	}
+	?>
+	<tr>
+			<td>&nbsp;</td>
+			<td><?php echo "<input type=\"button\" value=\"$sButton\" onClick=\"checkAndSubmit();\">";
+   		if( $urlMaId!="" )
+				echo "&nbsp;<input type=\"button\" value=\"Delete\" onClick=\"deleteMa();\">";	
+			?></td>
+		</tr>
+</table>
+</td></tr></table>
+</form>
+</body>
+</html>

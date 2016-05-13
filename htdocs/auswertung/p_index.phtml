@@ -1,0 +1,41 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+
+	for( $i=0; $i<count($aGruppe); $i++ )
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+</head>
+<body>
+<table width="600">
+<tr>
+	<th align="left" class="print"></th>
+</tr>
+<tr><td class="hintergrund"> 
+<?php
+	include( "auswertung/print/p_projekt.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues();
+	
+	$projekt_print = new p_projekt( $sBegin,$sEnd );
+	$projekt_print->projekt->sDate=$sDate;
+	
+	echo $projekt_print->getTable();
+?>
+</td></tr></table>
+</body>
+</html>

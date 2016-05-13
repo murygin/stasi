@@ -1,0 +1,97 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include(  "auth.inc" );
+	if( !$bIsDbConnected )
+		include( "stasi_db_settings.inc");
+					
+	include(  "datum.inc" );
+	include(  "kalender.inc" );
+	include(  "auswertung/view/v_stunden.inc" );
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Unbenannt</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	
+	<script type="text/javascript" language="JavaScript">
+		function selectDatum( sDatum ) {
+			var cmbDatum=getFormElement( parent.formular, "fmArbeit", "cmbDatum" );
+			var bIsSelected=false;
+			for( i=0; i<cmbDatum.options.length; i++ ) {
+				if( cmbDatum.options[i].value==sDatum ) {
+					cmbDatum.options[i].selected=true;	
+					getFormElement( parent.formular, "fmArbeit", "txtJahr" ).value = "";
+					getFormElement( parent.formular, "fmArbeit", "txtMonat" ).value = "";
+					getFormElement( parent.formular, "fmArbeit", "txtTag" ).value  = "";
+					bIsSelected=true;
+				}	 
+			}
+			if( !bIsSelected ) {
+				cmbDatum.options[cmbDatum.options.length-1].selected=true;	
+				getFormElement( parent.formular, "fmArbeit", "txtJahr" ).value = sDatum.substring( 2, 4 );
+				getFormElement( parent.formular, "fmArbeit", "txtMonat" ).value = sDatum.substring( 5, 7 );
+				getFormElement( parent.formular, "fmArbeit", "txtTag" ).value  = sDatum.substring( 8,10 );
+			}
+			document.location.href="kalender.phtml?urlDate=" + sDatum;
+		}
+		function openEditWindow( nArbeitId ) {
+			var sUrl = "editArbeit.phtml?urlArbeitId=" + nArbeitId;
+			editWindow = window.open( sUrl,"editWindow","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=auto,width=470,height=200,resizable=yes");
+			if( window.focus )
+				editWindow.focus();
+		}
+	</script>
+</head>
+
+<body>
+<table width="780">
+<tr>
+	<td class="hintergrund">
+<?php
+	$kalender=new kalender;
+	$kalender->setWoche( date( "Y-m-d", time()-604800*2 ) );
+	$kalender->setWoche( date( "Y-m-d", time()-604800 ) );
+	$kalender->setWoche( date( "Y-m-d" ) );
+	
+	$aDatum=Array();
+	$sqlDatum = "select datum,dauer from arbeit where ma_id=$nMaId order by datum";
+	$rsDatum= mysql_query( $sqlDatum )
+		or die( dbError( $sqlDatum ) );
+	while( $rowDatum=mysql_fetch_array($rsDatum) ) {
+		$aValues=Array();
+		$aValues[]=$rowDatum["datum"];
+		$aValues[]=$rowDatum["dauer"];	
+		$aDatum[]=$aValues;
+	}
+
+	$kalender->setStunden( $aDatum );
+	$kalender->setStatus( date( "Y-m-d" ), 2, "" );
+	
+	$kalender->output();
+?>
+	</td>
+</tr>
+<tr>
+	<td class="hintergrund">
+<?php
+	if( $urlDate!="" )
+		$sDate=$urlDate;
+	else
+		$sDate = date( "Y-m-d" );	
+	$v_stunden = new v_stunden( $nMaId, $sDate );
+	echo $v_stunden->getTable();
+?>
+	</td>
+</tr>
+</table>
+</body>
+</html>

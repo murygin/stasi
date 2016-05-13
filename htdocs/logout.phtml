@@ -1,0 +1,34 @@
+<?php
+	if( !$bIsDbConnected )
+		include( "stasi_db_settings.inc" );
+	$sqlGruppe = "select gruppe_id from gruppe";
+	$rsGruppe = mysql_query( $sqlGruppe );
+	while( $rowGruppe = mysql_fetch_array( $rsGruppe ) ) {
+		$nGruppeId=$rowGruppe["gruppe_id"];
+		if( $HTTP_COOKIE_VARS[$nGruppeId]!="" )
+			SetCookie( $nGruppeId );
+	} 
+echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+			  <html>
+			  <head>
+				<title>Staatssicherheit</title>
+				<script type="text/javascript" language="JavaScript">
+					/**
+					* oeffnet ein fenster mit der "login gescheitert" meldung
+					*/
+					function noLogin() {
+						ewMa = window.open("/noLogin.phtml","ewMa","toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,width=213,height=100,resizable=no");
+						ewMa.focus();
+					}
+					
+					noLogin();
+				</script>
+			  </head>
+			  <body>
+				<form name="fmIrl" action="index.phtml" method="post"><input name="irl" type="hidden" value="true"><input
+name="txtOldUser" type="hidden" value="' . $PHP_AUTH_USER . '"><input
+name="txtOldPwd" type="hidden" value="' . $PHP_AUTH_PW . '"></form>
+			   </body>
+			  </html>';
+		exit;
+?>

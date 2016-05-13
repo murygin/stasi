@@ -1,0 +1,60 @@
+<?php
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+
+	$bIsPm=false;
+	$bIsSu=false;
+	$bIsPro=false;
+	for( $i=0; $i<count($aGruppe); $i++ ) {
+		if( $aGruppe[$i]==2 )
+			$bIsPm=true;
+		if( $aGruppe[$i]==3 )
+			$bIsSu=true;	
+		if( $aGruppe[$i]==1 )
+			$bIsPro=true;
+	}
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+</head>
+<body>
+<table width="600"><tr><td class="hintergrund">
+<tr>
+	<th align="left" class="print"></th>
+</tr>
+<tr><td class="hintergrund">
+<?php
+	include( "auswertung/print/p_schritt_detail.inc" );
+	include( "auswertung/time_form.inc" );
+	
+	getTimeValues(); 
+	
+	if( $urlSchrittId!="" ) {
+		$p_schritt_detail = new p_schritt_detail( $urlMaId, $urlSchrittId, $sBegin, $sEnd );
+		$p_schritt_detail->schritt_detail->sDate=$sDate;
+		/*
+		sicherheit unnoetig, da nur berechtigte an den link gelangen
+		if( !$bIsSu  )
+			$p_schritt_detail->schritt_detail->nMaId=$nMaId;
+		if( $bIsPm )
+			$p_schritt_detail->schritt_detail->nPmId=$nMaId;
+		if( !$bIsSu && !$bIsPm  )
+			$-p_schritt_detail->schritt_detail->nMaId=$nMaId;
+		*/
+		echo $p_schritt_detail->getTable();
+	}
+	else
+		echo "Keine Schritt Id vorhanden. Auswertung nicht moeglich.";
+?>
+</td></tr></table>
+</body>
+</html>

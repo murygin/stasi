@@ -1,0 +1,365 @@
+<?php
+	$bIsLocal=true;
+	$sCookieName=Array();
+	$sCookieName[]="1";
+	$sCookieName[]="2";
+	$sCookieName[]="3";
+	if( $bIsLocal ) {
+		include( "cookieCheck.inc" );
+		include( "datum.inc" );
+	}
+	else {
+		include( "/cookieCheck.inc" );
+		include( "/datum.inc" );
+	}
+	if( !$bIsAuth ) {
+		echo "kein Zugang zu dieser Seite!";
+		exit;
+	}
+
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatsicherheit</title>
+	<?php
+	if( file_exists( "/css/stasi.css" ) ) {
+		echo '<link rel="stylesheet" type="text/css" href="/stasi/css/stasi.css">';
+		echo '<script type="text/javascript" language="JavaScript" src="/stasi/js/submit.js"></script>';
+	}
+	else {
+		echo '<link rel="stylesheet" type="text/css" href="/~schmidt/css/stasi.css">';
+		echo '<script type="text/javascript" language="JavaScript" src="/~schmidt/js/submit.js"></script>';
+	}
+	
+	?>
+
+	<script type="text/javascript" language="JavaScript">
+		aProjekt=new Array();
+		aProjektId=new Array();
+		aSchritt=new Array();
+		aSchrittId=new Array();
+		var nNumberOfProjekts=0;
+		var nNumberOfSchritte=0;
+		<?php
+			$bDebug="true";
+			
+			$nCmbSize=25;
+			//set db connection:
+			if( !$bIsDbConnected )
+				if( $bIsLocal )
+					include("stasi_db_settings.inc");
+				else
+					include(  "stasi_db_settings.inc" );
+					
+			if( $bIsLocal )
+				include "arbeit.inc";
+			else
+				include( "/arbeit.inc" );
+			$arbeit = new arbeit;
+			/*
+			$nTag=date( "d" );
+			$nMonat=date( "m" );
+			$nJahr=date( "y" );
+			*/
+	
+			$sHeader = "Sag die Wahrheit !";
+	
+			if( $txtArbeitId!="" )
+				$arbeit->update();
+			else
+				$arbeit->insert();
+		
+			$arbeit->nDbMaId=$nMaId;
+			
+			//filter
+			$arbeit->bProjektFilter=true;
+			$arbeit->bSchrittFilter=true;
+			$arbeit->bZeitFilter=true;
+	
+			if( $cmbFilterProjekt=="" )
+				$jsFilterProjekt=-1;
+			else
+				$jsFilterProjekt=$cmbFilterProjekt;
+			if( $cmbFilterSchritt=="" )
+				$jsFilterSchritt=-1;
+			else
+				$jsFilterSchritt=$cmbFilterSchritt;
+			if( $cmbFilterDatum=="" )
+				$jsFilterDatum=-1;
+			else
+				$jsFilterDatum=$cmbFilterDatum;
+			if( $cmbFilterMa=="" )
+				$jsFilterMa=-1;
+			else
+				$jsFilterMa=$cmbFilterMa;
+	
+			$arbeit->setTable();
+			
+			if( $urlArbeitId!="" ) {
+				$sHeader = "Edit Eintrag";
+				$arbeit->selectById( $urlArbeitId );
+				if( $arbeit->nTag!="" )
+					$nTag=$arbeit->nTag;
+				if( $arbeit->nMonat!="" )
+					$nMonat=$arbeit->nMonat;
+				if( $arbeit->nJahr!="" )
+					$nJahr=$arbeit->nJahr;
+				$arbeit->sDbBeginn=$nJahr . "-" . $nMonat . "-01"; 	
+				$arbeit->sDbEnde=$nJahr . "-" . $nMonat . "-31";
+			}	
+			
+			$aDate=Array();
+			$aDateValue=Array();
+			//anzahl der datumseintraege in der datum-selktbox
+			$nNumberOfDates=10;
+			for($i=0;$i<$nNumberOfDates;$i++ ) {
+				$sDateValue=date( "Y-m-d", time()-86400*$i );
+				$sDate=date( "d.m.y", time()-86400*$i );
+				$sTag=date( "l", time()-86400*$i );
+				switch( $sTag ) {
+					case "Monday": $sTag="Mo";break;
+					case "Tuesday": $sTag="Di";break;
+					case "Wednesday": $sTag="Mi";break;
+					case "Thursday": $sTag="Do";break;
+					case "Friday": $sTag="Fr";break;
+					case "Saturday": $sTag="Sa";break;
+					case "Sunday": $sTag="So";
+				}
+				if( $sTag!="Sa" && $sTag!="So" ) {
+					$aDateValue[]=$sDateValue;
+					$aDate[]=$sDate . ", " . $sTag; 
+				}
+				else 
+					if( $sTag!="Sa" ){
+						$aDateValue[]="";
+						$aDate[]="------";
+					}	
+			}
+			
+			$sqlProjekt = "select distinct projekt.projekt_id,bezeichnung from projekt,ma_projekt where ma_projekt.projekt_id=projekt.projekt_id and ma_projekt.ma_id=$nMaId or projekt.pm_id=$nMaId order by projekt_id";
+			$rsProjekt = mysql_query( $sqlProjekt )
+				or die( dbError( $sqlProjekt ) );
+		    $nNumberOfProjekts=mysql_num_rows( $rsProjekt );
+		?>
+
+		for( i=0;i<<?php echo $nNumberOfProjekts ?>;i++ ) {
+			aSchritt[i]=new Array();
+			aSchrittId[i]=new Array();
+		}
+
+		<?php
+			$counterProjekt = 0;
+			while( $rowProjekt = mysql_fetch_array( $rsProjekt ) ) {
+				$nProjektId=$rowProjekt["projekt_id"];
+				$sProjekt=$rowProjekt["bezeichnung"];
+	
+				echo 'aProjekt[' . $counterProjekt . '] = "' . $sProjekt . '";
+					  aProjektId[' . $counterProjekt . '] = ' . $nProjektId . ';';
+		
+				$sqlSchritt = "select bezeichnung,schritt_id from schritt where projekt_id=$nProjektId";
+				$rsSchritt = mysql_query( $sqlSchritt )
+					or die( dbError( $sqlSchritt ) );
+				$counterSchritt = 0;
+				while( $rowSchritt = mysql_fetch_array($rsSchritt) ) {
+		
+					if( $counterSchritt==0 ) {
+						echo 'aSchritt[' . $nProjektId . ']=new Array();
+							  aSchrittId[' . $nProjektId . ']=new Array();';
+					}
+		
+					$sSchritt=$rowSchritt["bezeichnung"];
+					$nSchrittId=$rowSchritt["schritt_id"];
+		
+					echo 'aSchritt[' . $nProjektId . '][' . $counterSchritt . '] = "' . $sSchritt . '";
+						  aSchrittId[' . $nProjektId . '][' . $counterSchritt . '] = ' . $nSchrittId . ';';
+		
+					$counterSchritt++;
+				} //end while rowSchritt
+				$counterProjekt++;
+			} //end while rowProjekt
+			if( $counterSchritt=="" )
+				$counterSchritt=0;	
+			
+		$nNumberOfProjekts=$counterProjekt;
+		$nNumberOfSchritte=$counterSchritt;
+		?>
+		//__________________________________________________________________________________
+
+		function onLoad() {
+			for( i=0;i<aProjekt.length;i++ ) {
+				if( document.fmArbeit.cmbProjekt.options[i]==null ) {
+					opProjekt = new Option( aProjekt[i] ); 
+					document.fmArbeit.cmbProjekt.options[document.fmArbeit.cmbProjekt.length]=opProjekt;
+				}
+				else
+					document.fmArbeit.cmbProjekt.options[i].text=aProjekt[i];
+				document.fmArbeit.cmbProjekt.options[i].value=aProjektId[i];
+				if( i==0 )
+					document.fmArbeit.cmbProjekt.options[i].selected=true;	
+			}
+			<?php
+			if( $urlArbeitId!="" )
+				echo 'selectProjekt( ' . $arbeit->nProjektId . ' );';	
+			?>
+			if( aSchritt[0]!=null )
+				cmbProjektClicked();
+			selectCmb();
+		}
+
+		function cmbProjektClicked() {
+			var nSelectedProjektId=getSelectedCmbValue( this, "fmArbeit", "cmbProjekt" );
+			var cmbSchritt=getFormElement( this, "fmArbeit", "cmbSchritt" );
+			if( cmbSchritt.selectedIndex != -1 )
+			getSelectedCmbText( this, "fmArbeit", "cmbSchritt" );
+				var sSelectedSchritt=getSelectedCmbText( this, "fmArbeit", "cmbSchritt" );
+			if( nSelectedProjektId!=null ) {
+				//alte eintraege werden geloescht
+				while( cmbSchritt.options[0]!=null ) 
+					cmbSchritt.options[0]=null;
+				if( aSchritt[nSelectedProjektId]!=null )
+					for( i=0; i<aSchritt[nSelectedProjektId].length; i++ ) {
+						//pruefung ob ein eintrag vorhanden ist
+						if( cmbSchritt.options[i]==null ) {
+							opSchritt = new Option( aSchritt[nSelectedProjektId][i] );
+							cmbSchritt.options[i] = opSchritt;
+						}
+						else 
+							cmbSchritt.options[i].text=aSchritt[nSelectedProjektId][i];
+						cmbSchritt.options[i].value=aSchrittId[nSelectedProjektId][i];
+						if( i==0 )
+							cmbSchritt.options[i].selected=true;	
+						if( sSelectedSchritt==aSchritt[nSelectedProjektId][i] )
+							cmbSchritt.options[i].selected=true;
+					} //end for i
+			} //end if
+			<?php
+			if( $urlArbeitId!="" )
+				echo 'selectSchritt( ' . $arbeit->nSchrittId . ' );';	
+			?>
+		} //end function cmbProjektClicked
+		function cmbDauerClicked() {
+			document.fmArbeit.txtDauerH.value = document.fmArbeit.cmbDauer.options[document.fmArbeit.cmbDauer.selectedIndex].value;
+		}
+		
+		function selectSchritt( nSchrittId ) {
+			var cmbSchritt=getFormElement( this, "fmArbeit", "cmbSchritt" );
+			for( i=0; i<cmbSchritt.options.length; i++ ) {
+				if( cmbSchritt.options[i].value==nSchrittId )
+					cmbSchritt.options[i].selected=true;	 
+			}
+		}
+		
+		function selectProjekt( nProjektId ) {
+			for( i=0; i<document.fmArbeit.cmbProjekt.options.length; i++ ) {
+				if( document.fmArbeit.cmbProjekt.options[i].value==nProjektId )
+					document.fmArbeit.cmbProjekt.options[i].selected=true;	 
+			}
+		}
+		
+		function selectCmb() {
+			if( document.fmFilter ) {
+				if( document.fmFilter.cmbFilterProjekt )
+					if( document.fmFilter.cmbFilterProjekt.options )
+						for( i=0; i<document.fmFilter.cmbFilterProjekt.options.length; i++ ) {
+							if( document.fmFilter.cmbFilterProjekt.options[i].value==<?php echo "$jsFilterProjekt" ?> )
+								document.fmFilter.cmbFilterProjekt.options[i].selected=true;	 
+						}
+				if( document.fmFilter.cmbFilterSchritt )
+					if( document.fmFilter.cmbFilterSchritt.options )
+						for( i=0; i<document.fmFilter.cmbFilterSchritt.options.length; i++ ) {
+							if( document.fmFilter.cmbFilterSchritt.options[i].value==<?php echo "$jsFilterSchritt" ?> )
+								document.fmFilter.cmbFilterSchritt.options[i].selected=true;	 
+						}
+				if( document.fmFilter.cmbFilterDatum )
+					if( document.fmFilter.cmbFilterDatum.options )
+						for( i=0; i<document.fmFilter.cmbFilterDatum.options.length; i++ ) {
+							if( document.fmFilter.cmbFilterDatum.options[i].value==<?php echo "$jsFilterDatum" ?> )
+								document.fmFilter.cmbFilterDatum.options[i].selected=true;	 
+						}
+				if( document.fmFilter.cmbFilterMa )
+					if( document.fmFilter.cmbFilterMa.options )
+						for( i=0; i<document.fmFilter.cmbFilterMa.options.length; i++ ) {
+							if( document.fmFilter.cmbFilterMa.options[i].value==<?php echo "$jsFilterMa" ?> )
+								document.fmFilter.cmbFilterMa.options[i].selected=true;	 
+						}
+			}
+		}
+		
+		function cmbFilterProjektClicked() {
+			document.fmFilter.submit();	
+		}
+	</script>
+	
+
+</head>
+<body onLoad="onLoad()">
+
+<form name="fmArbeit" action="<?php echo "$PHP_SELF" ?>" method="post">
+<input name="txtMaId" type="hidden" value="<?php echo $nMaId ?>">
+<input name="txtArbeitId" type="hidden" value="<?php if( $urlArbeitId!="" ) echo $arbeit->nArbeitId ?>">
+<input name="txtIsSubmit" type="hidden" value="true">
+<table width="580"><tr><td class="hintergrund"> 
+<table border="0" cellpadding="1" cellspacing="1" bgcolor="#666666" width="100%">
+	<tr>
+		<th colspan="4" align="left"><?php echo "$sHeader" ?></th>
+	</tr>
+	<tr bgcolor="#666666">
+		<td align="right" bgcolor="#666666">Datum</td>
+		<td colspan="3"><select name="cmbDatum" size="1">
+			<?php
+			for( $i=0; $i<count($aDate); $i++ ) {
+				echo '<option value="' . $aDateValue[$i] . '">' . $aDate[$i]; 
+			}
+			?>
+			<option value="">Textfelder -->
+		</select><input name="txtTag" type="text" size="2" maxlength="2">.<input name="txtMonat" type="text" size="2" maxlength="2">.<input name="txtJahr" type="text" size="2" maxlength="2">(tt.mm.jj)</td>	
+	</tr>
+	<tr>
+		<td align="right">Dauer</td>
+		<td><select name="cmbDauer" size="1" onChange="cmbDauerClicked()"><option>--<option value="1">1/8<option value="2">1/4<option value="3">3/8<option value="4">1/2<option value="5">5/8<option value="6">3/4<option value="7">7/8<option value="8">1</select>Tag&nbsp;<input name="txtDauerH" type="text" size="2" maxlength="2" value="<?php echo $arbeit->nStunden ?>">h<!--:<input name="txtDauerM" type="text" size="2" maxlength="2" value="<?php echo $arbeit->nMinuten ?>">m--></td>
+		<td>Beginn
+		<input name="txtBeginnH" type="text" size="2" maxlength="2">:<!--<input name="txtBeginnM" type="text" size="2" maxlength="2">-->00 Uhr</td>
+		<td>Ende
+		<input name="txtEndeH" type="text" size="2" maxlength="2">:<!--<input name="txtEndeM" type="text" size="2" maxlength="2">-->00 Uhr</td>
+	</tr>
+	<tr>
+		<td align="right">Projekt</td>
+		<td colspan="3"><select name="cmbProjekt" size="1" onChange="cmbProjektClicked()">
+			<?php
+			for( $i=0; $i<$nNumberOfProjekts;$i++ )
+				echo '<option>';
+					for( $k=0; $k<$nCmbSize;$k++ )
+						echo '&nbsp;';
+			?>
+		</select>&nbsp;&nbsp;
+		Arbeitsschritt
+		<select name="cmbSchritt" size="1">
+			<?php
+			for( $i=0; $i<$nNumberOfSchritte;$i++ )
+				echo '<option>';
+					for( $k=0; $k<$nCmbSize;$k++ )
+						echo '&nbsp;';
+			?>
+		</select></td>
+	</tr>
+	<tr>
+		<td align="right">Beschreibung</td>
+		<td colspan="3"><textarea name="txaBeschreibung" cols="30" rows="3" wrap="virtual"><?php if( $urlArbeitId!="" ) echo "$arbeit->sBeschreibung" ?></textarea></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td colspan="3"><input type="button" value="Speichern" onClick="checkAndSubmit()"></td>
+	</tr>
+</table>
+</td></tr></table>
+</form>
+<?php
+	echo "$arbeit->sTable";
+?>
+</table>
+</body>
+
+</html>
+

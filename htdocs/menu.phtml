@@ -1,0 +1,93 @@
+<?php
+	$bIsLocal=true;
+	
+	$aAccessId=Array();
+	$aAccessId[]="1";
+	$aAccessId[]="2";
+	$aAccessId[]="3";
+	include( "auth.inc" );
+	
+	
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+	<title>Staatssicherheit</title>
+	<link rel="stylesheet" type="text/css" href="/css/stasi.css">
+	<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>
+	<?php
+	/*
+	if( file_exists( "$DOCUMENT_ROOT/css/stasi.css" ) ) {
+		echo '<link rel="stylesheet" type="text/css" href="/stasi/css/stasi.css">';
+		echo '<script type="text/javascript" language="JavaScript" src="/stasi/js/submit.js"></script>';
+	}
+	else {
+		if( file_exists( "/css/stasi.css" ) ) {
+			echo '<link rel="stylesheet" type="text/css" href="/stasi/css/stasi.css">';
+			echo '<script type="text/javascript" language="JavaScript" src="/stasi/js/submit.js"></script>';
+		}
+		else {
+			echo '<link rel="stylesheet" type="text/css" href="/css/stasi.css">';
+			echo '<script type="text/javascript" language="JavaScript" src="/js/submit.js"></script>';
+		}
+	}
+	*/
+	//set db connection:
+	if( !$bIsDbConnected )
+		include( "stasi_db_settings.inc");
+			
+	$sqlMa = "select vorname,name from ma where ma_id=$nMaId";
+	$rsMa= mysql_query( $sqlMa )
+		or die( dbError( $sqlMa ) );
+	$rowMa=mysql_fetch_array( $rsMa );
+	$sVorname=$rowMa["vorname"];
+	$sName=$rowMa["name"];
+	?>
+</head>
+
+<body class="menu">
+<table width="100%" valign="top">
+<tr>
+<th class='menu' align='left'>Staatssicherheit</th>
+<?php
+echo "<th class='menu' align='left' size='50%'>";
+$bIsStunden=false;
+$bIsProjekte=false;
+$bIsMitarbeiter=false;
+$bIsAuswertung=false;
+$bIsPwd=false;
+$bIsHighscore=false;
+for( $i=0; $i<count($aGruppe ); $i++ ) {
+	if( ($aGruppe[$i]==1||$aGruppe[$i]==2||$aGruppe[$i]==3) && !$bIsStunden ) {
+		echo "<a href='stunden/index.phtml' target='middle' class='weiss'>Stunden</a>&nbsp;";
+		$bIsStunden=true;
+	}
+	if( ($aGruppe[$i]==2||$aGruppe[$i]==3) && !$bIsProjekte ) {
+		echo "| <a href='projekte/index.phtml' target='middle' class='weiss'>Projekte</a>&nbsp;";
+		$bIsProjekte=true;
+	}
+	if( $aGruppe[$i]==3 && !$bIsMitarbeiter ) {
+		echo "| <a href='mitarbeiter/index.phtml' target='middle' class='weiss'>Mitarbeiter</a>&nbsp;";
+		$bIsMitarbeiter=true;
+	}
+	if( ($aGruppe[$i]==1||$aGruppe[$i]==2||$aGruppe[$i]==3) && !$bIsAuswertung ) {
+		echo "| <a href='auswertung/index.phtml' target='middle' class='weiss'>Auswertung</a>&nbsp;";
+		$bIsAuswertung=true;
+	}
+	if( ($aGruppe[$i]==1||$aGruppe[$i]==2||$aGruppe[$i]==3) && !$bIsPwd ) {
+		echo "| <a href='kennwort/index.phtml' target='middle' class='weiss'>Kennwort</a>&nbsp;";
+		$bIsPwd=true;
+	}
+	/* highscore nicht mehr ausfuehrbar
+	if( ($aGruppe[$i]==1||$aGruppe[$i]==2||$aGruppe[$i]==3) && !$bIsHighscore ) {
+		echo "| <a href='http://obj.fork.de:8080/daniel/highscore.jsp?year=2001&month=5' target='middle' class='weiss'>Highscore</a>&nbsp;";
+		$bIsHighscore=true;
+	}
+	*/
+}
+echo "</th><th class='menu' align=right><span class='normal'>Eingeloggt als:</span> $sVorname $sName | <a href='logout.phtml' target='_top' class='weiss'>Logout</a></th>"; ?>
+</tr>
+</table>
+</body>
+</html>
