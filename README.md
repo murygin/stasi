@@ -22,94 +22,52 @@ OBTAINING:
 
 git clone https://github.com/murygin/stasi.git
 
-
-
 INSTALLATION:
 -------------
 
 Required before Install:
 
-php4.X
+* php4.X
+* Mysql server
+* Optionally cron and any MTA
 
-Mysql server
+Installation:
 
-Optionally cron and any MTA
-
-
-Untar stasi-$version.tar.gz somewhere outside your webroot.
-
-
-Let a Vhost point to /path/to/stasi/htdocs.
-
-
-Add the following directive to your httpd.conf file:
-
+* Untar stasi-$version.tar.gz somewhere outside your webroot.
+* Let a Vhost point to /path/to/stasi/htdocs.
+* Add the following directive to your httpd.conf file:
+```
 <Directory /path/to/stasi/htdocs>
 AllowOverride AuthConfig
 php_value include_path /path/to/stasi/lib
 </Directory>
-
-
-Create a database named 'zeit' for stasi:
-
-mysqladmin -u root -p*** create zeit
-
-
-Execute the database build script:
-
+```
+* Create a database named 'zeit' for stasi:
+```
+  mysqladmin -u root -p*** create zeit
+```
+* Execute the database build script:
+```
 mysql -u root -p*** < scripts/zeit.sql
-
-
-Edit lib/config.inc to reflect your systems settings.
-
-
-Optionally edit scripts/reminder.sh and symlink to /etc/cron.daily/reminder.sh.
-
-
-Log on to stasi with u:Admin p:Admin.
-
-
-Go to kennwort and change the default password.
-
-
-Add users, projects, tasks as you wish. A new user is given the username as
-temporary password. Encourage new users to change the default password.
-
-
+```
+* Edit lib/config.inc to reflect your systems settings.
+* Optionally edit scripts/reminder.sh and symlink to /etc/cron.daily/reminder.sh.
+* Log on to stasi with u:Admin p:Admin.
+* Go to kennwort and change the default password.
+* Add users, projects, tasks as you wish. A new user is given the username as temporary password. Encourage new users to change the default password.
 
 VERSION HISTORY:
 ----------------
 
-Version 1.0.1b2
-
+*Version 1.0.1b2*
 27.03.2002
+* cleaned some more
+* added Logout
 
-cleaned some more
-
-added Logout
-
-gert@null2.net
--
-
-
-Version 1.0.1b
-
+*Version 1.0.1b*
 26.03.2002
-
-Version number generated. 1.x was chosen because stasi was in mature state
-before versioning.
-
-Wrote Readme
-
-Rewrote zeit.sql
-
-Wrote reminder.sh
-
-cleaned up & secured db settings
-
-gert@null.net
--
-
-
-Check for new versions at: http://sourceforge.net/projects/stasi
--
+* Version number generated. 1.x was chosen because stasi was in mature state before versioning.
+* Wrote Readme
+* Rewrote zeit.sql
+* Wrote reminder.sh
+* cleaned up & secured db settings
